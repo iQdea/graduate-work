@@ -1,0 +1,31 @@
+.DS_Store
+.gitignore
+
+# Cache files
+babelcache
+.eslintcache
+.jestcache
+
+# Folders
+node_modules
+public/static
+dist/
+coverage/
+tmp/
+deploy/
+loadtest/
+
+Dockerfile
+.dockerignore
+.gitlab-ci.yml
+
+README.md
+README-*.md
+
+.idea/
+.vscode/
+*.iml
+
+.env.*
+
+tsconfig.build.tsbuildinfo

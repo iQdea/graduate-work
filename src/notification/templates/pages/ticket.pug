@@ -1,0 +1,76 @@
+extends ../layout.pug
+
+block contentBody
+  tbody
+    tr(style='box-shadow: 0px 4px 20px rgb(0 0 0 / 8%)')
+      td
+        table(width='100%' border='0' cellpadding='0' cellspacing='0')
+          tbody
+            tr
+              td.logo(align='left' valign='top' style='padding-top: 20px; padding-right: 30px; padding-bottom: 20px; padding-left: 30px;')
+                img(src='https://564722.selcdn.ru/dev-qvedo-api-media-images/f5cfd890-7f96-4b31-9fe3-236601ddb79c.s.png' alt='Qvedo' border='0' width='138px' height='30px' style='display: block;')
+              td(align='right')
+                center
+                  table.header-right(width='100%' border='0' cellpadding='0' cellspacing='0' style='padding-top: 16px; padding-bottom: 16px; padding-right: 30px; padding-left: 0; margin: 0; width: 100%;')
+                    tbody
+                      tr
+                        td(align='right' style='font-family: Arial,sans-serif; font-size: 12px; color: #3C3C47;')
+                          a.btn.btn--outline(href='#' style='color: #24B0FF;') Личный кабинет
+                          // /.btn btn--outline
+    tr
+      td
+        table.table-text(width='100%' border='0' cellpadding='0' cellspacing='0')
+          tbody
+            tr
+              td
+                table(width='100%' border='0' cellpadding='0' cellspacing='0' style='padding: 0;')
+                  tbody
+                    tr
+                      td(colspan='2')
+                        h1(style='color: #3C3C47; margin-top: 0; margin-bottom: 0;') Здравствуйте, #{username}!
+                        p(style='color: #3C3C47;')
+                          | Спасибо, что пользуетесь QVEDO. Информация о вашем
+                          a(href='#' style='color: #3C3C47;') бронировании
+                          | :
+                    tr
+                      td(colspan='2')
+                        .ticket(style='padding-left: 0; padding-right: 0;' width='280px' height='120px')
+                          img(src='https://564722.selcdn.ru/stg-qvedo-api-media-images/a231825a-2338-4d8f-8e68-cfe75b955113.m.png' alt='')
+                          .ticket-content
+                            h4(style='color: #3C3C47; margin-top: 0; margin-bottom: 10px;') Поездка в NEW YORK
+                            time(style='color: #868A93; font-family: Verdana, sans-serif; display: block; margin-bottom: 10px;') Вторник, май 19-го 2021
+                            p(style='color: #24B0FF; font-family: Verdana, sans-serif; display: block; margin-bottom: 10px; text-indent: 0;')
+                              img(src='https://564722.selcdn.ru/stg-qvedo-api-media-images/902aa60c-86c8-4cee-8e4b-1e60a52f37ff.m.png' style='vertical-align: top;' alt='' width='20px' height='20px')
+                              |  Ожидает оплаты
+                            figure.message
+                              blockquote(cite='https://www.huxley.net/bnw/four.html')
+                                p
+                                  | Добрый день,платёж прошёл успешно!
+                                  br
+                                  | Увидимся в среду!
+                                  time(style='color: #868A93;') 15:44
+                            h4(style='color: #3C3C47; margin-top: 0; margin-bottom: 10px;') Билет 1
+                            time(style='color: #868A93; font-family: Verdana, sans-serif; display: block; margin-bottom: 10px;') Вторник, май 19-го 2021
+                            table.ticket-table(border='0' cellpadding='0' cellspacing='0')
+                              tbody
+                                tr
+                                  td(colspan='2')
+                                    img(src='https://564722.selcdn.ru/stg-qvedo-api-media-images/adc891fa-50fc-4577-a8d7-df9f41b3f28e.m.png' alt='' width='10.18px' height='8.53px' style='margin-right: 10px; vertical-align: middle;')
+                                    |  Вторник, май 19-го 2021
+                                tr
+                                  td(colspan='2')
+                                    img(src='https://564722.selcdn.ru/stg-qvedo-api-media-images/adc891fa-50fc-4577-a8d7-df9f41b3f28e.m.png' alt='' width='10.18px' height='8.53px' style='margin-right: 10px; vertical-align: middle;')
+                                    |  Вторник, май 19-го 2021
+                              tfoot
+                                tr
+                                  td 236 000 ₽
+                                  td(align='right' style='color: #868A93;') 3 шт
+                    tr
+                      td
+                        center(style='max-width: 100%;')
+                          a.btn.btn--red(href='#' style='color: #ffffff;') Оплатить
+                          // /.btn btn--red
+                          a.btn.btn--outline.btn--big(href='#' style='color: #24B0FF;') Перейти в личный кабинет
+                          // /.btn btn--outline btn--big
+block contentFooter
+  include ../partials/footer.pug
