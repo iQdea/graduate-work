@@ -8,6 +8,7 @@ import { Image } from './database/image.entity';
 import { S3Module, S3ModuleOptions } from '../s3';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../app.config';
+import { DownloadService } from './download.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { AppConfig } from '../app.config';
       entities: [Upload, Image]
     })
   ],
-  providers: [S3MediaService, UploadService, ImageService],
-  exports: [UploadService, ImageService]
+  providers: [S3MediaService, UploadService, ImageService, DownloadService],
+  exports: [UploadService, ImageService, DownloadService]
 })
 export class MediaModule {}

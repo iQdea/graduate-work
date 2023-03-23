@@ -13,7 +13,7 @@ import { Bucket, UploadGroup } from './database/upload.entity';
 @Injectable()
 export class ImageService {
   private readonly logger = new Logger(ImageService.name);
-  private readonly imageSizesConfig: Record<string, ResizeOptions>;
+  private readonly imageSizesConfig: Record<string, ResizeOptions & { coefficient: number }>;
   private readonly previewOptions: ResizeOptions;
   private readonly selCdnBase: string;
   private readonly imageBucketName: string;
@@ -56,6 +56,13 @@ export class ImageService {
     sourceStream.pipe(transformer).pipe(writeableStream);
 
     const dimensions = await sourceStream.pipe(metaReader).metadata();
+    if (!dimensions.width || !dimensions.height) {
+      throw new Error('Should never come here');
+    }
+    file.dimensions = {
+      width: dimensions.width,
+      height: dimensions.height
+    };
     const data = <CompleteMultipartUploadOutput>await upload.done();
     if (transformerError === null) {
       this.eventEmitter.emit('preview.created', file);
@@ -68,16 +75,23 @@ export class ImageService {
       preview: {
         url: `${this.selCdnBase}/${data.Bucket}/${previewKey}`
       },
-      dimensions
+      dimensions: file.dimensions
     };
   }
 
   @OnEvent('preview.created', { async: true })
   async handlePreviewCreatedEvent(file: File) {
-    const { id: uploadId, key, extension, mimeType } = file;
-
+    const { id: uploadId, key, extension, mimeType, dimensions } = file;
+    const sizes: Record<string, ResizeOptions> = {};
+    for (const i of Object.keys(this.imageSizesConfig)) {
+      sizes[i] = {
+        width: Math.round(dimensions.width * this.imageSizesConfig[i].coefficient),
+        height: Math.round(dimensions.height * this.imageSizesConfig[i].coefficient),
+        fit: this.imageSizesConfig[i].fit
+      };
+    }
     await Promise.all(
-      Object.entries(this.imageSizesConfig).map(async ([sizeType, resizeOptions]) => {
+      Object.entries(sizes).map(async ([sizeType, resizeOptions]) => {
         const imageKey = `${uploadId}.${sizeType}.${extension}`;
         const sourceStream = await this.s3Service.getReadableStream(key, Bucket.images);
         const { writeableStream, upload } = this.s3Service.getWriteableStream(imageKey, Bucket.images, mimeType);

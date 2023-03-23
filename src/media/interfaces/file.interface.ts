@@ -12,9 +12,9 @@ export interface File extends FileInfo {
   preview?: {
     url?: string;
   };
-  dimensions?: {
-    width?: number;
-    height?: number;
+  dimensions: {
+    width: number;
+    height: number;
   };
   error?: Error;
 }

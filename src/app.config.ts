@@ -49,7 +49,7 @@ export interface AppConfig {
     };
     resizeImageBySharp: {
       previewSize: ResizeOptions;
-      sizes: Record<string, ResizeOptions>;
+      sizes: Record<string, ResizeOptions & { coefficient: number }>;
     };
     maxFileSizeMegabytes: number;
     mimeTypes: Record<string, string[]>;
@@ -184,17 +184,17 @@ export default (): AppConfig => ({
         images: process.env.MEDIA_S3_IMAGES_BUCKET || 'images'
       }
     },
-    selectelCdnBase: process.env.SELCDN_BASE_URL || 'http://localhost:3200',
+    selectelCdnBase: process.env.SELCDN_BASE_URL || 'http://localhost:3200/media',
     resizeImageBySharp: {
       previewSize: {
         width: 320,
         height: 320,
-        fit: 'contain'
+        fit: 'fill'
       },
       sizes: {
-        s: { width: 640, height: 480, fit: 'contain' },
-        m: { width: 960, height: 720, fit: 'contain' },
-        l: { width: 1920, height: 1080, fit: 'contain' }
+        s: { fit: 'fill', coefficient: 0.25 },
+        m: { fit: 'fill', coefficient: 1 },
+        l: { fit: 'fill', coefficient: 2 }
       }
     },
     maxFileSizeMegabytes: 10,

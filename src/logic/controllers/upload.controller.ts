@@ -1,13 +1,13 @@
-import { Body, Controller, Param, Query, Req, Res, StreamableFile } from '@nestjs/common';
+import { Controller, Param, Req } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Endpoint, EndpointResponse } from '../decorators';
 import { UploadService } from '../../media/upload.service';
-import { Request, Response } from 'express';
-import { CreateUploadMediaResponse, DownloadMedias, ShowUploadMediaResponse } from '../dto/upload.dto';
+import { Request } from 'express';
+import { CreateUploadMediaResponse, ShowUploadMediaResponse } from '../dto/upload.dto';
 
-@ApiTags('Media')
+@ApiTags('Upload')
 @Controller({
-  path: 'media',
+  path: 'upload',
   version: '1'
 })
 export class UploadController {
@@ -29,7 +29,7 @@ export class UploadController {
     }
   })
   @Endpoint('post', {
-    path: 'upload',
+    path: '',
     protected: true,
     response: CreateUploadMediaResponse,
     summary: 'Загрузить файл или несколько'
@@ -78,54 +78,5 @@ export class UploadController {
       dto: ShowUploadMediaResponse,
       data: media ?? ({} as ShowUploadMediaResponse)
     };
-  }
-
-  @Endpoint('get', {
-    path: 'download/:id',
-    protected: true,
-    response: StreamableFile,
-    summary: 'Скачать файл из хранилища'
-  })
-  async downloadMedia(
-    @Res({ passthrough: true }) res: Response,
-    @Param('id') id: string,
-    @Query('mimeType') mimeType: string,
-    @Query('name') name: string
-  ): Promise<StreamableFile> {
-    const data = await this.uploadService.downloadMedia({
-      data: {
-        download: {
-          id,
-          mimeType
-        }
-      }
-    });
-    res.type(mimeType.split('/')[1]);
-    res.set({
-      'Content-Disposition': `attachment; filename="${name}.${mimeType.split('/')[1]}"`
-    });
-    return new StreamableFile(data);
-  }
-
-  @Endpoint('post', {
-    path: 'download/files',
-    protected: true,
-    request: DownloadMedias,
-    summary: 'Скачать файлы из хранилища (архивом)'
-  })
-  async downloadMedias(
-    @Res({ passthrough: true }) res: Response,
-    @Body('data') { downloads }: DownloadMedias,
-    @Query('name') name: string
-  ): Promise<StreamableFile> {
-    const response = await this.uploadService.downloadMedias({
-      downloads
-    });
-    await response.finalize();
-    res.type('zip');
-    res.set({
-      'Content-Disposition': `attachment; filename="${name}.zip"`
-    });
-    return new StreamableFile(response);
   }
 }

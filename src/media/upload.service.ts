@@ -13,21 +13,14 @@ import { ConfigService } from '@nestjs/config';
 import { Error } from '../filters/http-exception.filter';
 import {
   CreateUploadMediaRequest,
-  DownloadMediaRequest,
-  DownloadMediasRequest,
   File,
   ListenFilesRequest,
   ShowUploadMediaRequest,
-  UploadImageByUrlsRequest,
-  UploadImageByUrlsResponse,
   UploadMediaErrorsResponse,
   UploadMediaResponse
 } from './interfaces';
-import sharp from 'sharp';
-import crypto from 'crypto';
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import axiosRetry from 'axios-retry';
-import archiver, { Archiver } from 'archiver';
 export interface PocImage {
   bytes: Buffer;
   uuid: string;
@@ -80,7 +73,11 @@ export class UploadService {
         size: 0,
         encoding: info.encoding,
         mimeType: info.mimeType,
-        filename: info.filename
+        filename: info.filename,
+        dimensions: {
+          width: 0,
+          height: 0
+        }
       };
 
       const { writeableStream, upload } = this.s3Service.getWriteableStream(
@@ -126,7 +123,7 @@ export class UploadService {
                 stack = error.stack;
               }
               fileInfo.error = {
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                status: Number(error.name) ?? HttpStatus.INTERNAL_SERVER_ERROR,
                 title: 'Internal Server Error',
                 stack,
                 detail: error.message
@@ -256,127 +253,10 @@ export class UploadService {
     return file;
   }
 
-  public async downloadMedia(payload: DownloadMediaRequest): Promise<Readable> {
-    const upload = await this.em.findOne(Upload, payload.data.download.id);
-    if (!upload) {
-      throw new Error(`File with id ${payload.data.download.id} not found`);
-    }
-    if (upload.group === UploadGroup.images) {
-      return await this.imageService.getImage(
-        payload.data.download.id + '.' + payload.data.download.mimeType.split('/')[1]
-      );
-    } else {
-      throw new Error('Should never come here');
-    }
-  }
-
-  public async downloadMedias(payload: DownloadMediasRequest): Promise<Archiver> {
-    const zip = archiver('zip');
-    for (const item of payload.downloads) {
-      zip.append(
-        await this.downloadMedia({
-          data: {
-            download: {
-              id: item.id,
-              mimeType: item.mimeType
-            }
-          }
-        }),
-        {
-          name: item.name + '.' + item.mimeType.split('/')[1]
-        }
-      );
-    }
-    return zip;
-  }
-
   @OnEvent('upload.processed', { async: true })
   async handleUploadProcessed(uploadId: string) {
     const upload = await this.em.findOneOrFail(Upload, uploadId);
     upload.isReady = true;
     await this.em.persistAndFlush(upload);
-  }
-
-  private async downloadImage(url: string): Promise<AxiosResponse | null> {
-    return new Promise((resolve) => {
-      this.axiosClient(url, {
-        responseType: 'arraybuffer',
-        maxContentLength: 15_728_640 //~15mb
-      })
-        .then((res) => resolve(res))
-        .catch(() => resolve(null));
-    });
-  }
-
-  public async uploadImageByUrls(payload: UploadImageByUrlsRequest): Promise<UploadImageByUrlsResponse> {
-    const resImages: Array<AxiosResponse | null> = await Promise.all(
-      payload.data.upload.urls.map((url) => this.downloadImage(url))
-    );
-
-    const notEmptyResImages = resImages.filter((it) => it !== null) as AxiosResponse[];
-
-    const arrayBufferImages = await Promise.all(notEmptyResImages.map((x) => Buffer.from(x.data)));
-    const uint8ArrayImages = arrayBufferImages.map((x) => new Uint8Array(x));
-
-    const bufferImages: Array<PocImage | string> = await Promise.all(
-      uint8ArrayImages.map(async (x) => {
-        try {
-          return await UploadService.pocImage(x);
-        } catch {
-          return 'unsupported image format';
-        }
-      })
-    );
-
-    const numberBadImages: string[] = [];
-    const notEmptyBufferImages = bufferImages.filter((it, index) => {
-      if (typeof it === 'string') {
-        numberBadImages.push(`№(${index + 1}): ${it}`);
-        return false;
-      }
-      return true;
-    }) as PocImage[];
-    if (notEmptyBufferImages.length < 3) {
-      throw new Error(`less 3 crop images, ${numberBadImages.join(';')}`);
-    }
-
-    const imageIds = [];
-    for (const img of notEmptyBufferImages) {
-      const image: any = await this.s3Service.upload(img.uuid, `image/${img.format}`, img.bytes, Bucket.images);
-      imageIds.push(image.Key);
-    }
-
-    return {
-      data: {
-        upload: {
-          ids: imageIds
-        }
-      }
-    };
-  }
-
-  private static async pocImage(bin: Uint8Array): Promise<PocImage | string> {
-    let src: sharp.Sharp = await sharp(bin);
-    const meta = await src.metadata();
-    const { width, height } = meta;
-    if (!width || !height || Math.min(width, height) < 768) {
-      return 'width or height < 768';
-    }
-
-    let { format } = meta;
-    let bytes: Buffer;
-    if (Math.min(width, height) > 3072) {
-      src = width < height ? src.resize({ width: 3072 }) : src.resize({ height: 3072 });
-    }
-    if (format === 'jpeg' || format === 'webp') {
-      bytes = await src.toBuffer();
-    } else {
-      bytes = await src.webp().toBuffer();
-      format = 'webp';
-    }
-
-    const l = crypto.createHash('sha256').update(bytes).digest('hex').toLowerCase();
-    const uuid = `${l.slice(0, 8)}-${l.slice(8, 12)}-${l.slice(12, 16)}-${l.slice(16, 20)}-${l.slice(20, 32)}`;
-    return { bytes, uuid, format };
   }
 }
