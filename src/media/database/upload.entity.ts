@@ -1,14 +1,7 @@
 import { Entity, Enum, Property } from '@mikro-orm/core';
 import { BaseEntity } from '../../common/entities/base.entity';
+import { UploadGroup } from './upload-group';
 
-export enum UploadGroup {
-  any = 'any',
-  images = 'images'
-}
-
-export enum Bucket {
-  images = 'images'
-}
 @Entity({
   schema: 'storage_s3_media',
   tableName: 'upload'

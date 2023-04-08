@@ -6,7 +6,7 @@ export type S3 = AWS.S3Client;
 
 export interface S3ModuleOptions {
   config: S3ClientConfig;
-  buckets: Record<string, string>;
+  buckets: Record<string, { value: string; temporary: boolean }>;
 }
 
 export interface S3ModuleOptionsFactory {

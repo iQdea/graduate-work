@@ -21,6 +21,7 @@ interface UploadMediaError {
 interface UploadMedia {
   id: string;
   mimeType: string;
+  fileName?: string;
   size: number;
   preview?: UploadMediaPreview;
   dimensions?: UploadMediaDimensions;

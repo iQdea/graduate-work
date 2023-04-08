@@ -1,6 +1,7 @@
 import { FileInfo } from 'busboy';
 import { Error } from '../../filters/http-exception.filter';
-import { UploadGroup } from '../database/upload.entity';
+import { UploadGroup } from '../database/upload-group';
+import { Bucket } from '../database/bucket';
 
 export interface File extends FileInfo {
   id: string;
@@ -8,11 +9,12 @@ export interface File extends FileInfo {
   extension: string;
   isSaved: boolean;
   size: number;
-  group?: UploadGroup;
+  group: UploadGroup;
+  bucket: Bucket;
   preview?: {
     url?: string;
   };
-  dimensions: {
+  dimensions?: {
     width: number;
     height: number;
   };

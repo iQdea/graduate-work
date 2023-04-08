@@ -8,7 +8,8 @@ import sharp, { ResizeOptions } from 'sharp';
 import { Image } from './database/image.entity';
 import { File, UploadMediaResponse } from './interfaces';
 import { CompleteMultipartUploadOutput } from '@aws-sdk/client-s3';
-import { Bucket, UploadGroup } from './database/upload.entity';
+import { UploadGroup } from './database/upload-group';
+import { Bucket } from './database/bucket';
 
 @Injectable()
 export class ImageService {
@@ -74,14 +75,16 @@ export class ImageService {
       ...file,
       preview: {
         url: `${this.selCdnBase}/${data.Bucket}/${previewKey}`
-      },
-      dimensions: file.dimensions
+      }
     };
   }
 
   @OnEvent('preview.created', { async: true })
   async handlePreviewCreatedEvent(file: File) {
     const { id: uploadId, key, extension, mimeType, dimensions } = file;
+    if (!dimensions) {
+      throw new Error('Not an image');
+    }
     const sizes: Record<string, ResizeOptions> = {};
     for (const i of Object.keys(this.imageSizesConfig)) {
       sizes[i] = {

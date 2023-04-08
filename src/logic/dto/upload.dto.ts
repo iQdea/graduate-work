@@ -63,6 +63,10 @@ export class FileUploadMediaResponse {
 
   @Expose()
   @ApiPropertyOptional()
+  fileName?: string;
+
+  @Expose()
+  @ApiPropertyOptional()
   @Nested(PreviewUploadMediaResponse)
   preview?: PreviewUploadMediaResponse;
 

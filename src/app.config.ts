@@ -45,7 +45,7 @@ export interface AppConfig {
     selectelCdnBase: string;
     s3: {
       config: S3ClientConfig;
-      buckets: Record<string, string>;
+      buckets: Record<string, { value: string; temporary: boolean }>;
     };
     resizeImageBySharp: {
       previewSize: ResizeOptions;
@@ -181,7 +181,18 @@ export default (): AppConfig => ({
         forcePathStyle: true
       },
       buckets: {
-        images: process.env.MEDIA_S3_IMAGES_BUCKET || 'images'
+        images: {
+          value: process.env.MEDIA_S3_IMAGES_BUCKET || 'images',
+          temporary: false
+        },
+        docs: {
+          value: process.env.MEDIA_S3_DOC_BUCKET || 'docs',
+          temporary: false
+        },
+        tmp: {
+          value: process.env.MEDIA_S3_TEMP_BUCKET || 'tmp',
+          temporary: true
+        }
       }
     },
     selectelCdnBase: process.env.SELCDN_BASE_URL || 'http://localhost:3200/media',
@@ -199,7 +210,8 @@ export default (): AppConfig => ({
     },
     maxFileSizeMegabytes: 10,
     mimeTypes: {
-      image: 'image/jpeg,image/gif,image/png,image/tiff,image/webp'.split(',')
+      image: 'image/jpeg,image/gif,image/png,image/tiff,image/webp'.split(','),
+      doc: 'application/pdf'.split(',')
     }
   },
   authService: {

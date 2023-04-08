@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Upload, UploadGroup } from './database/upload.entity';
+import { Upload } from './database/upload.entity';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { ImageService } from './image.service';
 import { Readable } from 'stream';
 import { Error } from '../filters/http-exception.filter';
 import { DownloadMediaRequest, DownloadMediasRequest } from './interfaces';
 import archiver, { Archiver } from 'archiver';
+import { UploadGroup } from './database/upload-group';
 
 @Injectable()
 export class DownloadService {

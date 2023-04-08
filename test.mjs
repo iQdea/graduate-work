@@ -1,17 +1,12 @@
 import {
-  CreateBucketCommand,
-  GetObjectCommand,
+  DeleteObjectsCommand,
   ListObjectsCommand,
-  PutObjectCommand,
+  ListMultipartUploadsCommand,
+  DeleteBucketCommand,
+  ListBucketsCommand,
+  AbortMultipartUploadCommand,
   S3Client
 } from '@aws-sdk/client-s3';
-
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-import path from "path";
-import {Readable} from "stream";
-import * as fs from 'fs'
 
 const s3Client = new S3Client({
   credentials: {
@@ -23,23 +18,38 @@ const s3Client = new S3Client({
   endpoint: 'http://127.0.0.1:8000/'
 });
 
-// const input = {
-//   "Body": path.join(__dirname, 'Share.png'),
-//   "Bucket": "images",
-//   "Key": "sample3.png"
-// }
-// const createBucketCommand = new CreateBucketCommand({
-//   Bucket: "images"
-// })
-// const putObjectCMD = new PutObjectCommand(input)
-const getObjCMD = new GetObjectCommand({
-  Bucket: 'images',
-  Key: 'a09ffce9-4958-4025-a4c1-6facda7e6338.jpeg'
-})
-const { Body: body } = await s3Client.send(
-  getObjCMD
+const listBucketsCommand = new ListBucketsCommand({})
+const { Buckets } = await s3Client.send(
+  listBucketsCommand
 );
-if (!(body instanceof Readable)) {
-  throw new TypeError('body is not instance of Readable');
-}
+console.info(Buckets)
+// for (const bucket of Buckets) {
+//   const { Uploads } = await s3Client.send(new ListMultipartUploadsCommand({
+//     Bucket: bucket.Name
+//   }))
+//   if (Uploads) {
+//     await Promise.all(Uploads.map(({Key, UploadId}) => s3Client.send(new AbortMultipartUploadCommand({
+//       Bucket: bucket.Name,
+//       Key,
+//       UploadId
+//     }))))
+//   }
+// }
+for (const bucket of Buckets) {
+  const listObjectsCommand = new ListObjectsCommand({
+    Bucket: bucket.Name
+  })
+  const { Contents } = await s3Client.send(listObjectsCommand)
 
+  // if (Contents) {
+  //   await s3Client.send(
+  //     new DeleteObjectsCommand({
+  //       Bucket: bucket.Name,
+  //       Delete: {Objects: Contents.map((x) => ({Key: x.Key}))}
+  //     })
+  //   );
+  // }
+}
+// await Promise.all(Buckets.map((x)=> s3Client.send(new DeleteBucketCommand({
+//   Bucket: x.Name
+// }))))

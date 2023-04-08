@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { AppConfig } from '../app.config';
 import { S3MediaService } from './s3-media.service';
-import { Bucket, Upload, UploadGroup } from './database/upload.entity';
+import { Upload } from './database/upload.entity';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { ImageService } from './image.service';
@@ -21,11 +21,9 @@ import {
 } from './interfaces';
 import axios, { AxiosInstance } from 'axios';
 import axiosRetry from 'axios-retry';
-export interface PocImage {
-  bytes: Buffer;
-  uuid: string;
-  format: string;
-}
+import { UploadGroup } from './database/upload-group';
+import { Bucket } from './database/bucket';
+import * as utf8 from 'utf8';
 
 @Injectable()
 export class UploadService {
@@ -33,6 +31,7 @@ export class UploadService {
   private readonly conf: {
     maxFileSize: number;
     imageMimeTypes: string[];
+    docMimeTypes: string[];
   };
   private readonly isDev: boolean;
   private readonly axiosClient: AxiosInstance;
@@ -46,7 +45,8 @@ export class UploadService {
   ) {
     this.conf = {
       maxFileSize: Math.floor(this.configService.get('media.maxFileSizeMegabytes', { infer: true }) * 1024 * 1024),
-      imageMimeTypes: this.configService.get('media.mimeTypes.image', { infer: true })
+      imageMimeTypes: this.configService.get('media.mimeTypes.image', { infer: true }),
+      docMimeTypes: this.configService.get('media.mimeTypes.doc', { infer: true })
     };
     this.isDev = this.configService.get('env') === 'development';
 
@@ -61,10 +61,25 @@ export class UploadService {
     });
   }
 
-  private onFileListener(payload: ListenFilesRequest) {
-    return (name: string, file: Readable, info: FileInfo) => {
+  private static concatMimes(...arrays: string[][]): string[] {
+    return arrays.flat();
+  }
+
+  private async detectBucketAndGroup(mimeType: string): Promise<[Bucket, UploadGroup, boolean]> {
+    if (this.conf.imageMimeTypes.includes(mimeType)) {
+      return [Bucket.images, UploadGroup.images, true];
+    } else if (this.conf.docMimeTypes.includes(mimeType)) {
+      return [Bucket.docs, UploadGroup.docs, true];
+    } else {
+      return [Bucket.tmp, UploadGroup.tmp, false];
+    }
+  }
+
+  private async onFileListener(payload: ListenFilesRequest) {
+    return async (name: string, file: Readable, info: FileInfo) => {
       const extension = info.mimeType.split('/')[1];
       const id = uuid();
+      const [fileBucket, fileGroup, isSupported] = await this.detectBucketAndGroup(info.mimeType);
       const fileInfo: File = {
         id,
         key: `${id}.${extension}`,
@@ -73,28 +88,32 @@ export class UploadService {
         size: 0,
         encoding: info.encoding,
         mimeType: info.mimeType,
-        filename: info.filename,
-        dimensions: {
-          width: 0,
-          height: 0
-        }
+        filename: utf8.decode(info.filename),
+        group: fileGroup,
+        dimensions:
+          fileBucket == Bucket.images
+            ? {
+                width: 0,
+                height: 0
+              }
+            : undefined,
+        bucket: fileBucket
       };
-
       const { writeableStream, upload } = this.s3Service.getWriteableStream(
         fileInfo.key,
-        Bucket.images,
+        fileBucket,
         fileInfo.mimeType
       );
-
+      const allowedMimes = UploadService.concatMimes(this.conf.imageMimeTypes, this.conf.docMimeTypes);
       let stack;
       payload.data.upload.files.push(
         (async () => {
           try {
             await upload.done();
-            fileInfo.size = await this.s3Service.sizeOf(fileInfo.key, Bucket.images);
+            fileInfo.size = await this.s3Service.sizeOf(fileInfo.key, fileBucket);
             fileInfo.isSaved = true;
 
-            if (!this.conf.imageMimeTypes.includes(fileInfo.mimeType)) {
+            if (!isSupported) {
               const error = new Error();
               if (this.isDev) {
                 stack = error.stack;
@@ -103,7 +122,7 @@ export class UploadService {
                 status: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
                 title: 'Unsupported mime type',
                 stack,
-                detail: `supportedMimeTypes: ${this.conf.imageMimeTypes}, mimeType: ${fileInfo.mimeType}`
+                detail: `supportedMimeTypes: ${allowedMimes}, mimeType: ${fileInfo.mimeType}`
               };
             } else if (fileInfo.size > this.conf.maxFileSize) {
               const error = new Error();
@@ -156,7 +175,7 @@ export class UploadService {
 
     busboy.on('error', errorHandler).on(
       'file',
-      this.onFileListener({
+      await this.onFileListener({
         data: {
           upload: {
             files
@@ -177,11 +196,7 @@ export class UploadService {
     let stack;
     if (!file.error) {
       try {
-        if (this.conf.imageMimeTypes.includes(file.mimeType)) {
-          resFile.group = UploadGroup.images;
-        }
         const files = await this.eventEmitter.emitAsync('file.received', resFile.group, file);
-
         resFile = files.find(Boolean) ?? file;
       } catch (error) {
         if (error instanceof Error) {
@@ -205,22 +220,18 @@ export class UploadService {
     payload: CreateUploadMediaRequest,
     userId: string
   ): Promise<UploadMediaErrorsResponse> {
+    await this.s3Service.createTempBucket();
     const files = await this.getFiles(payload.data.upload.request);
+    await this.s3Service.deleteTempBucket();
     const allFiles = await Promise.all(files.map((file: File) => this.processFile(file)));
-    const filesToRemove = allFiles.filter((file: File) => file.isSaved && file.error);
-    if (filesToRemove.length > 0) {
-      await this.s3Service.deleteMany(
-        filesToRemove.map((file) => file.key),
-        Bucket.images
-      );
-    }
-    const uploadedFiles = allFiles.filter((file) => !filesToRemove.some((errorFile) => file.id === errorFile.id));
+    const failedFiles = allFiles.filter((file: File) => file.isSaved && file.error);
+    const uploadedFiles = allFiles.filter((file) => !failedFiles.some((errorFile) => file.id === errorFile.id));
     const uploads = uploadedFiles.map((file) =>
       this.em.create(Upload, {
         id: file.id,
         userId,
         isReady: false,
-        group: file.group || UploadGroup.any
+        group: file.group
       })
     );
     await this.em.persistAndFlush(uploads);
@@ -230,7 +241,7 @@ export class UploadService {
           ...uploaded,
           fileName: uploaded.filename
         })),
-        errors: filesToRemove.map((failed) => ({
+        errors: failedFiles.map((failed) => ({
           ...failed.error,
           detail: failed.error?.detail + `, filename: ${failed.filename}`
         }))

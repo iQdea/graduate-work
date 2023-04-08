@@ -4,6 +4,38 @@ import { Endpoint, EndpointResponse } from '../decorators';
 import { UploadService } from '../../media/upload.service';
 import { Request } from 'express';
 import { CreateUploadMediaResponse, ShowUploadMediaResponse } from '../dto/upload.dto';
+import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
+type CustomSchemaObject = SchemaObject & {
+  'x-parser'?: string;
+  'x-parser-options'?: { ext: string };
+};
+
+const pdfSchemaObject: CustomSchemaObject = {
+  description: 'PDF files',
+  'x-parser': 'stream',
+  'x-parser-options': {
+    ext: 'pdf'
+  }
+};
+const imageSchemaObject: CustomSchemaObject = {
+  description: 'Image files',
+  'x-parser': 'stream',
+  'x-parser-options': { ext: 'png,jpg,jpeg' }
+};
+
+const gifSchemaObject: CustomSchemaObject = {
+  description: 'Animated GIFs',
+  'x-parser': 'stream',
+  'x-parser-options': { ext: 'gif' }
+};
+
+const svgSchemaObject: CustomSchemaObject = {
+  description: 'SVG files',
+  'x-parser': 'stream',
+  'x-parser-options': { ext: 'svg' }
+};
+
+const formatsArray = [pdfSchemaObject, imageSchemaObject, gifSchemaObject, svgSchemaObject];
 
 @ApiTags('Upload')
 @Controller({
@@ -22,7 +54,8 @@ export class UploadController {
           type: 'array',
           items: {
             type: 'string',
-            format: 'binary'
+            format: 'binary',
+            anyOf: formatsArray
           }
         }
       }
