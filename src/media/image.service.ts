@@ -27,7 +27,7 @@ export class ImageService {
     this.previewOptions = this.configService.get('media.resizeImageBySharp.previewSize', { infer: true });
     this.imageSizesConfig = this.configService.get('media.resizeImageBySharp.sizes', { infer: true });
     this.selCdnBase = this.configService.get('media.selectelCdnBase', { infer: true });
-    this.imageBucketName = this.configService.get('media.s3.buckets.images', { infer: true });
+    this.imageBucketName = this.configService.get('media.s3.buckets.images.value', { infer: true });
   }
 
   @OnEvent('file.received', { promisify: true })
@@ -108,15 +108,15 @@ export class ImageService {
         const image = this.em.create(Image, {
           uploadId,
           sizeType,
-          mimeType
+          mimeType,
+          width: resizeOptions.width!,
+          heigth: resizeOptions.height!
         });
         await this.em.persist(image);
       })
     );
 
     await this.em.flush();
-
-    this.eventEmitter.emit('upload.processed', uploadId);
   }
 
   public async getImagesByUploadId(uploadId: string): Promise<UploadMediaResponse[]> {
@@ -133,8 +133,8 @@ export class ImageService {
           url: `${this.selCdnBase}/${this.imageBucketName}/${key}`
         },
         dimensions: {
-          width: this.imageSizesConfig[image.sizeType].width,
-          height: this.imageSizesConfig[image.sizeType].height
+          width: image.width,
+          height: image.heigth
         }
       });
     }

@@ -21,6 +21,12 @@ export class Image extends BaseEntity<Image> {
   @Property()
   mimeType!: string;
 
+  @Property()
+  width!: number;
+
+  @Property()
+  heigth!: number;
+
   [PrimaryKeyType]?: [string, string];
 
   constructor(uploadId: string, sizeType: string) {

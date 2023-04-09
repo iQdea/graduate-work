@@ -36,8 +36,6 @@ export class DocService {
     });
     await this.em.persistAndFlush(document);
 
-    this.eventEmitter.emit('upload.processed', uploadId);
-
     return {
       ...file,
       preview: {

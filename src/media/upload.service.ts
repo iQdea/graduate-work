@@ -99,6 +99,10 @@ export class UploadService {
             : undefined,
         bucket: fileBucket
       };
+      let isAllowed = true;
+      file.on('limit', () => {
+        isAllowed = false;
+      });
       const { writeableStream, upload } = this.s3Service.getWriteableStream(
         fileInfo.key,
         fileBucket,
@@ -124,7 +128,7 @@ export class UploadService {
                 stack,
                 detail: `supportedMimeTypes: ${allowedMimes}, mimeType: ${fileInfo.mimeType}`
               };
-            } else if (fileInfo.size > this.conf.maxFileSize) {
+            } else if (!isAllowed) {
               const error = new Error();
               if (this.isDev) {
                 stack = error.stack;
@@ -235,6 +239,7 @@ export class UploadService {
       })
     );
     await this.em.persistAndFlush(uploads);
+    uploads.map((x: Upload) => this.eventEmitter.emit('upload.processed', x.id));
     return {
       data: {
         files: uploadedFiles.map((uploaded) => ({
