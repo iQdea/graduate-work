@@ -109,8 +109,8 @@ export class ImageService {
           uploadId,
           sizeType,
           mimeType,
-          width: resizeOptions.width!,
-          heigth: resizeOptions.height!
+          width: resizeOptions.width || 0,
+          heigth: resizeOptions.height || 0
         });
         await this.em.persist(image);
       })

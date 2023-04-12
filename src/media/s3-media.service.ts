@@ -7,15 +7,11 @@ import {
   AbortMultipartUploadCommandOutput,
   CompleteMultipartUploadCommandOutput,
   DeleteObjectsCommand,
-  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   ListBucketsCommand,
   CreateBucketCommand,
-  DeleteBucketCommand,
-  ListMultipartUploadsCommand,
-  AbortMultipartUploadCommand,
-  ListObjectsCommand
+  DeleteBucketCommand
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Bucket } from './database/bucket';
@@ -77,23 +73,6 @@ export class S3MediaService implements OnApplicationBootstrap {
     return size || 0;
   }
 
-  public async deleteMany(keys: string[], bucket: Bucket) {
-    return this.s3.send(
-      new DeleteObjectsCommand({
-        Bucket: this.getBucketName(bucket),
-        Delete: { Objects: keys.map((key) => ({ Key: key })) }
-      })
-    );
-  }
-  public async deleteOne(key: string, bucket: Bucket) {
-    return this.s3.send(
-      new DeleteObjectCommand({
-        Bucket: this.getBucketName(bucket),
-        Key: key
-      })
-    );
-  }
-
   private getBucketName(bucket: Bucket) {
     if (!this.buckets[bucket]) {
       throw new Error('Unknown bucket');
@@ -112,38 +91,20 @@ export class S3MediaService implements OnApplicationBootstrap {
   }
 
   public async deleteTempBucket() {
-    const { Uploads } = await this.s3.send(
-      new ListMultipartUploadsCommand({
-        Bucket: 'tmp'
-      })
-    );
-    if (Uploads) {
-      await Promise.all(
-        Uploads.map(({ Key, UploadId }) =>
-          this.s3.send(
-            new AbortMultipartUploadCommand({
-              Bucket: 'tmp',
-              Key,
-              UploadId
-            })
-          )
-        )
-      );
-    }
-    const { Contents } = await this.s3.send(
-      new ListObjectsCommand({
-        Bucket: 'tmp'
-      })
-    );
-    if (Contents) {
-      await this.s3.send(
-        new DeleteObjectsCommand({
-          Bucket: 'tmp',
-          Delete: { Objects: Contents.map((x) => ({ Key: x.Key })) }
-        })
-      );
-    }
     await this.deleteBucket('tmp');
+  }
+
+  public async deleteMany(objs: { key: string; bucket: Bucket }[]) {
+    await Promise.all(
+      objs.map((obj) =>
+        this.s3.send(
+          new DeleteObjectsCommand({
+            Bucket: this.getBucketName(obj.bucket),
+            Delete: { Objects: [{ Key: obj.key }] }
+          })
+        )
+      )
+    );
   }
 
   public async upload(

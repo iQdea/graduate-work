@@ -5,8 +5,9 @@ import { S3MediaService } from './s3-media.service';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { UploadGroup } from './database/upload-group';
-import { File } from './interfaces';
+import { File, UploadMediaResponse } from './interfaces';
 import { Document } from './database/doc.entity';
+import { Bucket } from './database/bucket';
 
 @Injectable()
 export class DocService {
@@ -20,7 +21,7 @@ export class DocService {
     private readonly eventEmitter: EventEmitter2
   ) {
     this.selCdnBase = this.configService.get('media.selectelCdnBase', { infer: true });
-    this.docBucketName = this.configService.get('media.s3.buckets.docs', { infer: true });
+    this.docBucketName = this.configService.get('media.s3.buckets.docs.value', { infer: true });
   }
 
   @OnEvent('file.received', { promisify: true })
@@ -42,5 +43,23 @@ export class DocService {
         url: `${this.selCdnBase}/${bucket}/${key}`
       }
     };
+  }
+
+  public async getDocByUploadId(uploadId: string): Promise<UploadMediaResponse> {
+    const doc = await this.em.findOneOrFail(Document, { uploadId });
+    const extension = doc.mimeType.split('/')[1];
+    const key = `${uploadId}.${extension}`;
+    return {
+      id: doc.uploadId,
+      mimeType: doc.mimeType,
+      size: await this.s3Service.sizeOf(key, Bucket.docs),
+      preview: {
+        url: `${this.selCdnBase}/${this.docBucketName}/${key}`
+      }
+    };
+  }
+
+  public async getDoc(docId: string) {
+    return this.s3Service.getReadableStream(docId, Bucket.docs);
   }
 }

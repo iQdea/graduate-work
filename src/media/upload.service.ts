@@ -24,6 +24,7 @@ import axiosRetry from 'axios-retry';
 import { UploadGroup } from './database/upload-group';
 import { Bucket } from './database/bucket';
 import * as utf8 from 'utf8';
+import { DocService } from './doc.service';
 
 @Injectable()
 export class UploadService {
@@ -41,7 +42,8 @@ export class UploadService {
     private readonly s3Service: S3MediaService,
     private readonly em: EntityManager,
     private readonly eventEmitter: EventEmitter2,
-    private readonly imageService: ImageService
+    private readonly imageService: ImageService,
+    private readonly docService: DocService
   ) {
     this.conf = {
       maxFileSize: Math.floor(this.configService.get('media.maxFileSizeMegabytes', { infer: true }) * 1024 * 1024),
@@ -226,7 +228,6 @@ export class UploadService {
   ): Promise<UploadMediaErrorsResponse> {
     await this.s3Service.createTempBucket();
     const files = await this.getFiles(payload.data.upload.request);
-    await this.s3Service.deleteTempBucket();
     const allFiles = await Promise.all(files.map((file: File) => this.processFile(file)));
     const failedFiles = allFiles.filter((file: File) => file.isSaved && file.error);
     const uploadedFiles = allFiles.filter((file) => !failedFiles.some((errorFile) => file.id === errorFile.id));
@@ -240,6 +241,8 @@ export class UploadService {
     );
     await this.em.persistAndFlush(uploads);
     uploads.map((x: Upload) => this.eventEmitter.emit('upload.processed', x.id));
+    await this.s3Service.deleteMany(failedFiles.map((file) => ({ key: file.key, bucket: file.bucket })));
+    await this.s3Service.deleteTempBucket();
     return {
       data: {
         files: uploadedFiles.map((uploaded) => ({
@@ -264,6 +267,8 @@ export class UploadService {
       const answer = await this.imageService.getImagesByUploadId(payload.data.upload.id);
       const fileIndex = answer.findIndex((x) => x.preview?.url?.includes('.s.'));
       file = fileIndex !== -1 ? answer[fileIndex] : file;
+    } else if (upload.group === UploadGroup.docs) {
+      file = await this.docService.getDocByUploadId(payload.data.upload.id);
     }
 
     return file;
