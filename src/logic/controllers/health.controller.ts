@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../../app.config';
 import { Endpoint, EndpointResponse } from '../decorators';
 import { HealthCheckResultDto } from '../dto/health.dto';
-import { CreateUploadMediaResponse } from '../dto/upload.dto';
 
 @ApiTags('System')
 @Controller()

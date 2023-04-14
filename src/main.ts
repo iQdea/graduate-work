@@ -1,10 +1,9 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
-import { RedocModule, RedocOptions } from 'nestjs-redoc';
 import { ResponseSerializerInterceptor } from './common/interceptors/response-serializer.interceptor';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -67,18 +66,6 @@ async function bootstrap() {
       docExpansion: 'none'
     }
   });
-
-  // Redoc frontend for OpenAPI
-  const redocOptions: RedocOptions = {
-    title: 'QVEDO Public API',
-    hideDownloadButton: true,
-    hideHostname: true,
-    tagGroups: []
-  };
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  await RedocModule.setup('/apidocs', app, swaggerDocument, redocOptions);
 
   app.enableShutdownHooks();
 

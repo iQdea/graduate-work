@@ -13,6 +13,7 @@ import { QueueModule } from './queue/queue.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { multistream } from 'pino';
 import { NotificationModule } from './notification/notification.module';
+import { MetricsController } from './logic/controllers';
 
 const ignoredPaths = new Set(['/health', '/metrics', '/favicon.ico']);
 
@@ -57,7 +58,9 @@ const ignoredPaths = new Set(['/health', '/metrics', '/favicon.ico']);
         )
       ]
     }),
-    PrometheusModule.register(),
+    PrometheusModule.register({
+      controller: MetricsController
+    }),
     MikroOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

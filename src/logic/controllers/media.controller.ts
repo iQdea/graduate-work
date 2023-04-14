@@ -1,5 +1,5 @@
 import { ApiTags } from '@nestjs/swagger';
-import { Controller, Param, Query, Res, StreamableFile } from '@nestjs/common';
+import { Controller, Param, Res, StreamableFile } from '@nestjs/common';
 import { Endpoint } from '../decorators';
 import { ImageService } from '../../media/image.service';
 import { Response } from 'express';
@@ -17,6 +17,7 @@ export class MediaController {
     private readonly docService: DocService,
     private readonly videoService: VideoService
   ) {}
+
   @Endpoint('get', {
     path: 'images/:id',
     protected: true,
@@ -31,6 +32,7 @@ export class MediaController {
     });
     return new StreamableFile(data);
   }
+
   @Endpoint('get', {
     path: 'docs/:id',
     protected: true,
@@ -45,6 +47,7 @@ export class MediaController {
     });
     return new StreamableFile(data);
   }
+
   @Endpoint('get', {
     path: 'videos/:id',
     protected: true,
@@ -52,7 +55,7 @@ export class MediaController {
     summary: 'Посмотреть видео файл из хранилища'
   })
   async getMediaVideo(@Res({ passthrough: true }) res: Response, @Param('id') id: string): Promise<StreamableFile> {
-    const data = await this.videoService.getVideo(id)
+    const data = await this.videoService.getVideo(id);
     res.type(id.split('.').slice(-1)[0]);
     res.set({
       'Content-Disposition': `inline`

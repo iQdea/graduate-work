@@ -7,20 +7,36 @@ import { Error } from '../filters/http-exception.filter';
 import { DownloadMediaRequest, DownloadMediasRequest } from './interfaces';
 import archiver, { Archiver } from 'archiver';
 import { UploadGroup } from './database/upload-group';
+import { DocService } from './doc.service';
+import { VideoService } from './video.service';
 
 @Injectable()
 export class DownloadService {
-  constructor(private readonly em: EntityManager, private readonly imageService: ImageService) {}
+  constructor(
+    private readonly em: EntityManager,
+    private readonly imageService: ImageService,
+    private readonly docService: DocService,
+    private readonly videoService: VideoService
+  ) {}
 
   public async downloadMedia(payload: DownloadMediaRequest): Promise<Readable> {
     const upload = await this.em.findOne(Upload, payload.data.download.id.split('.')[0]);
     if (!upload) {
       throw new Error(`File with id ${payload.data.download.id} not found`);
     }
-    if (upload.group === UploadGroup.images) {
-      return await this.imageService.getImage(payload.data.download.id + '.' + payload.data.download.mimeType);
-    } else {
-      throw new Error('Should never come here');
+    switch (upload.group) {
+      case UploadGroup.images: {
+        return await this.imageService.getImage(payload.data.download.id + '.' + payload.data.download.mimeType);
+      }
+      case UploadGroup.docs: {
+        return await this.docService.getDoc(payload.data.download.id + '.' + payload.data.download.mimeType);
+      }
+      case UploadGroup.videos: {
+        return await this.videoService.getVideo(payload.data.download.id + '.' + payload.data.download.mimeType);
+      }
+      default: {
+        throw new Error('Should never come here');
+      }
     }
   }
 
