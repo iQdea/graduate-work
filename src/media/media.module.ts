@@ -11,6 +11,8 @@ import { S3Module, S3ModuleOptions } from '../s3';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../app.config';
 import { DownloadService } from './download.service';
+import { Video } from './database/video.entity';
+import { VideoService } from './video.service';
 
 @Module({
   imports: [
@@ -19,10 +21,10 @@ import { DownloadService } from './download.service';
       useFactory: (conf: ConfigService<AppConfig, true>) => conf.get<S3ModuleOptions>('media.s3', { infer: true })
     }),
     MikroOrmModule.forFeature({
-      entities: [Upload, Image, Document]
+      entities: [Upload, Image, Document, Video]
     })
   ],
-  providers: [S3MediaService, UploadService, ImageService, DownloadService, DocService],
-  exports: [UploadService, ImageService, DocService, DownloadService]
+  providers: [S3MediaService, UploadService, ImageService, DownloadService, DocService, VideoService],
+  exports: [UploadService, ImageService, DocService, DownloadService, VideoService]
 })
 export class MediaModule {}

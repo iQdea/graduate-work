@@ -1,17 +1,32 @@
-import { Controller, Get, Redirect } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
+import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '../../app.config';
+import { Endpoint, EndpointResponse } from '../decorators';
+import { HealthCheckResultDto } from '../dto/health.dto';
+import { CreateUploadMediaResponse } from '../dto/upload.dto';
 
 @ApiTags('System')
 @Controller()
 export class HealthController {
-  constructor(private health: HealthCheckService, private http: HttpHealthIndicator) {}
+  constructor(
+    private health: HealthCheckService,
+    private http: HttpHealthIndicator,
+    private readonly configService: ConfigService<AppConfig, true>
+  ) {}
 
-  @Get('health')
+  @Endpoint('get', {
+    path: 'health',
+    summary: 'Health check',
+    response: HealthCheckResultDto
+  })
   @HealthCheck()
-  check() {
+  async check(): EndpointResponse<HealthCheckResultDto> {
+    const res = await this.health.check([async () => this.http.pingCheck('default', this.configService.get('envUrl'))]);
     return {
-      status: 'ok'
+      dto: HealthCheckResultDto,
+      data: res
     };
   }
 

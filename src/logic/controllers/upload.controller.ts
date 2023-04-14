@@ -35,7 +35,13 @@ const svgSchemaObject: CustomSchemaObject = {
   'x-parser-options': { ext: 'svg' }
 };
 
-const formatsArray = [pdfSchemaObject, imageSchemaObject, gifSchemaObject, svgSchemaObject];
+const videoSchemaObject: CustomSchemaObject = {
+  description: 'Video files',
+  'x-parser': 'stream',
+  'x-parser-options': { ext: 'mp4' }
+};
+
+const formatsArray = [pdfSchemaObject, imageSchemaObject, gifSchemaObject, svgSchemaObject, videoSchemaObject];
 
 @ApiTags('Upload')
 @Controller({

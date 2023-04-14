@@ -4,6 +4,7 @@ import { Endpoint } from '../decorators';
 import { ImageService } from '../../media/image.service';
 import { Response } from 'express';
 import { DocService } from '../../media/doc.service';
+import { VideoService } from '../../media/video.service';
 
 @ApiTags('Media')
 @Controller({
@@ -11,7 +12,11 @@ import { DocService } from '../../media/doc.service';
   version: '1'
 })
 export class MediaController {
-  constructor(private readonly imageService: ImageService, private readonly docService: DocService) {}
+  constructor(
+    private readonly imageService: ImageService,
+    private readonly docService: DocService,
+    private readonly videoService: VideoService
+  ) {}
   @Endpoint('get', {
     path: 'images/:id',
     protected: true,
@@ -34,6 +39,20 @@ export class MediaController {
   })
   async getMediaDoc(@Res({ passthrough: true }) res: Response, @Param('id') id: string): Promise<StreamableFile> {
     const data = await this.docService.getDoc(id);
+    res.type(id.split('.').slice(-1)[0]);
+    res.set({
+      'Content-Disposition': `inline`
+    });
+    return new StreamableFile(data);
+  }
+  @Endpoint('get', {
+    path: 'videos/:id',
+    protected: true,
+    response: StreamableFile,
+    summary: 'Посмотреть видео файл из хранилища'
+  })
+  async getMediaVideo(@Res({ passthrough: true }) res: Response, @Param('id') id: string): Promise<StreamableFile> {
+    const data = await this.videoService.getVideo(id)
     res.type(id.split('.').slice(-1)[0]);
     res.set({
       'Content-Disposition': `inline`

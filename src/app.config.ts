@@ -185,6 +185,10 @@ export default (): AppConfig => ({
           value: process.env.MEDIA_S3_IMAGES_BUCKET || 'images',
           temporary: false
         },
+        videos: {
+          value: process.env.MEDIA_S3_IMAGES_BUCKET || 'videos',
+          temporary: false
+        },
         docs: {
           value: process.env.MEDIA_S3_DOC_BUCKET || 'docs',
           temporary: false
@@ -211,7 +215,8 @@ export default (): AppConfig => ({
     maxFileSizeMegabytes: 10,
     mimeTypes: {
       image: 'image/jpeg,image/gif,image/png,image/tiff,image/webp'.split(','),
-      doc: 'application/pdf'.split(',')
+      doc: 'application/pdf'.split(','),
+      video: 'video/mp4'.split(',')
     }
   },
   authService: {

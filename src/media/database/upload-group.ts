@@ -1,5 +1,6 @@
 export enum UploadGroup {
   images = 'images',
   docs = 'docs',
-  tmp = 'tmp'
+  tmp = 'tmp',
+  videos = 'videos'
 }

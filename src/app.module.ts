@@ -5,6 +5,7 @@ import { TerminusModule } from '@nestjs/terminus';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { LoggerModule } from 'nestjs-pino';
 import { Request, Response } from 'express';
+import { HttpModule } from '@nestjs/axios';
 import config, { AppConfig, getConfigValidationSchema } from './app.config';
 import { GatewayPublicModule } from './logic/gateway-public.module';
 import { MediaModule } from './media/media.module';
@@ -73,7 +74,8 @@ const ignoredPaths = new Set(['/health', '/metrics', '/favicon.ico']);
     GatewayPublicModule,
     MediaModule,
     NotificationModule,
-    QueueModule
+    QueueModule,
+    HttpModule
   ],
   controllers: [],
   providers: []

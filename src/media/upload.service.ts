@@ -25,14 +25,18 @@ import { UploadGroup } from './database/upload-group';
 import { Bucket } from './database/bucket';
 import * as utf8 from 'utf8';
 import { DocService } from './doc.service';
+import { VideoService } from './video.service';
 
 @Injectable()
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
   private readonly conf: {
     maxFileSize: number;
-    imageMimeTypes: string[];
-    docMimeTypes: string[];
+    mime: {
+      imageMimeTypes: string[];
+      docMimeTypes: string[];
+      videoMimeTypes: string[];
+    };
   };
   private readonly isDev: boolean;
   private readonly axiosClient: AxiosInstance;
@@ -43,12 +47,16 @@ export class UploadService {
     private readonly em: EntityManager,
     private readonly eventEmitter: EventEmitter2,
     private readonly imageService: ImageService,
-    private readonly docService: DocService
+    private readonly docService: DocService,
+    private readonly videoService: VideoService
   ) {
     this.conf = {
       maxFileSize: Math.floor(this.configService.get('media.maxFileSizeMegabytes', { infer: true }) * 1024 * 1024),
-      imageMimeTypes: this.configService.get('media.mimeTypes.image', { infer: true }),
-      docMimeTypes: this.configService.get('media.mimeTypes.doc', { infer: true })
+      mime: {
+        imageMimeTypes: this.configService.get('media.mimeTypes.image', { infer: true }),
+        docMimeTypes: this.configService.get('media.mimeTypes.doc', { infer: true }),
+        videoMimeTypes: this.configService.get('media.mimeTypes.video', { infer: true })
+      }
     };
     this.isDev = this.configService.get('env') === 'development';
 
@@ -63,15 +71,25 @@ export class UploadService {
     });
   }
 
-  private static concatMimes(...arrays: string[][]): string[] {
-    return arrays.flat();
+  private static concatMimes(mime: any): string[] {
+    let result: string[] = [];
+    for (const key in mime) {
+      if (Array.isArray(mime[key])) {
+        result = [...result, ...mime[key]];
+      } else if (typeof mime[key] === 'object') {
+        result = [...result, ...this.concatMimes(mime[key])];
+      }
+    }
+    return result;
   }
 
   private async detectBucketAndGroup(mimeType: string): Promise<[Bucket, UploadGroup, boolean]> {
-    if (this.conf.imageMimeTypes.includes(mimeType)) {
+    if (this.conf.mime.imageMimeTypes.includes(mimeType)) {
       return [Bucket.images, UploadGroup.images, true];
-    } else if (this.conf.docMimeTypes.includes(mimeType)) {
+    } else if (this.conf.mime.docMimeTypes.includes(mimeType)) {
       return [Bucket.docs, UploadGroup.docs, true];
+    } else if (this.conf.mime.videoMimeTypes.includes(mimeType)) {
+      return [Bucket.videos, UploadGroup.videos, true];
     } else {
       return [Bucket.tmp, UploadGroup.tmp, false];
     }
@@ -110,7 +128,7 @@ export class UploadService {
         fileBucket,
         fileInfo.mimeType
       );
-      const allowedMimes = UploadService.concatMimes(this.conf.imageMimeTypes, this.conf.docMimeTypes);
+      const allowedMimes = UploadService.concatMimes(this.conf.mime);
       let stack;
       payload.data.upload.files.push(
         (async () => {
@@ -263,14 +281,22 @@ export class UploadService {
       return undefined;
     }
     let file = {} as UploadMediaResponse;
-    if (upload.group === UploadGroup.images) {
-      const answer = await this.imageService.getImagesByUploadId(payload.data.upload.id);
-      const fileIndex = answer.findIndex((x) => x.preview?.url?.includes('.s.'));
-      file = fileIndex !== -1 ? answer[fileIndex] : file;
-    } else if (upload.group === UploadGroup.docs) {
-      file = await this.docService.getDocByUploadId(payload.data.upload.id);
+    switch (upload.group) {
+      case UploadGroup.images: {
+        const answer = await this.imageService.getImagesByUploadId(payload.data.upload.id);
+        const fileIndex = answer.findIndex((x) => x.preview?.url?.includes('.s.'));
+        file = fileIndex !== -1 ? answer[fileIndex] : file;
+        break;
+      }
+      case UploadGroup.docs: {
+        file = await this.docService.getDocByUploadId(payload.data.upload.id);
+        break;
+      }
+      case UploadGroup.videos: {
+        file = await this.videoService.getVideoByUploadId(payload.data.upload.id);
+        break;
+      }
     }
-
     return file;
   }
 
