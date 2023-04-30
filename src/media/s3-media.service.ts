@@ -4,8 +4,6 @@ import { AppConfig } from '../app.config';
 import stream, { Readable } from 'stream';
 import { InjectS3, S3 } from '../s3';
 import {
-  AbortMultipartUploadCommandOutput,
-  CompleteMultipartUploadCommandOutput,
   DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
@@ -105,24 +103,6 @@ export class S3MediaService implements OnApplicationBootstrap {
         )
       )
     );
-  }
-
-  public async upload(
-    key: string,
-    mimeType: string,
-    buffer: Buffer,
-    bucket: Bucket
-  ): Promise<AbortMultipartUploadCommandOutput | CompleteMultipartUploadCommandOutput> {
-    const upload = new Upload({
-      client: this.s3,
-      params: {
-        Bucket: this.getBucketName(bucket),
-        Key: key,
-        ContentType: mimeType,
-        Body: buffer
-      }
-    });
-    return await upload.done();
   }
 
   public async manageS3Buckets(bucketNames: string[]): Promise<void> {

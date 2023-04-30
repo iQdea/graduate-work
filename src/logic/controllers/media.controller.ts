@@ -1,10 +1,12 @@
 import { ApiTags } from '@nestjs/swagger';
-import { Controller, Param, Res, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Param, Req, Res, StreamableFile } from '@nestjs/common';
 import { Endpoint } from '../decorators';
 import { ImageService } from '../../media/image.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { DocService } from '../../media/doc.service';
 import { VideoService } from '../../media/video.service';
+import { AWSStreaming } from '../../media/streaming';
+import { Bucket } from '../../media/database/bucket';
 
 @ApiTags('Media')
 @Controller({
@@ -15,7 +17,8 @@ export class MediaController {
   constructor(
     private readonly imageService: ImageService,
     private readonly docService: DocService,
-    private readonly videoService: VideoService
+    private readonly videoService: VideoService,
+    private readonly awsStreaming: AWSStreaming
   ) {}
 
   @Endpoint('get', {
@@ -61,5 +64,14 @@ export class MediaController {
       'Content-Disposition': `inline`
     });
     return new StreamableFile(data);
+  }
+
+  @Get('/streaming/:id')
+  async video(@Res() res: Response, @Req() req: Request, @Param('id') id: string) {
+    const rangeHeader = req.headers.range;
+    const startPosition = rangeHeader ? Number.parseInt(rangeHeader.split('=')[1]) : 0;
+
+    const stream = await this.awsStreaming.create(startPosition, Bucket.videos, id);
+    stream.pipe(res);
   }
 }

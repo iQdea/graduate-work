@@ -13,6 +13,7 @@ import { AppConfig } from '../app.config';
 import { DownloadService } from './download.service';
 import { Video } from './database/video.entity';
 import { VideoService } from './video.service';
+import { AWSStreaming } from './streaming';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { VideoService } from './video.service';
       entities: [Upload, Image, Document, Video]
     })
   ],
-  providers: [S3MediaService, UploadService, ImageService, DownloadService, DocService, VideoService],
-  exports: [UploadService, ImageService, DocService, DownloadService, VideoService]
+  providers: [S3MediaService, UploadService, ImageService, DownloadService, DocService, VideoService, AWSStreaming],
+  exports: [UploadService, ImageService, DocService, DownloadService, VideoService, AWSStreaming]
 })
 export class MediaModule {}

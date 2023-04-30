@@ -20,7 +20,7 @@ export class DownloadService {
   ) {}
 
   public async downloadMedia(payload: DownloadMediaRequest): Promise<Readable> {
-    const upload = await this.em.findOne(Upload, payload.data.download.id.split('.')[0]);
+    const upload = await this.em.findOne(Upload, payload.data.download.id);
     if (!upload) {
       throw new Error(`File with id ${payload.data.download.id} not found`);
     }
@@ -40,7 +40,7 @@ export class DownloadService {
     }
   }
 
-  public async downloadMedias(payload: DownloadMediasRequest): Promise<Archiver> {
+  public async downloadZip(payload: DownloadMediasRequest): Promise<Archiver> {
     const zip = archiver('zip');
     for (const item of payload.downloads) {
       zip.append(
@@ -53,7 +53,7 @@ export class DownloadService {
           }
         }),
         {
-          name: item.name + '.' + item.mimeType.split('/')[1]
+          name: item.name + '.' + item.mimeType
         }
       );
     }

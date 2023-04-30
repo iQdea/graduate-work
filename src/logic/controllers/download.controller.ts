@@ -46,12 +46,12 @@ export class DownloadController {
     request: DownloadMedias,
     summary: 'Скачать файлы из хранилища (архивом)'
   })
-  async downloadMedias(
+  async downloadZip(
     @Res({ passthrough: true }) res: Response,
     @Body('data') { downloads }: DownloadMedias,
     @Query('name') name: string
   ): Promise<StreamableFile> {
-    const response = await this.downloadService.downloadMedias({
+    const response = await this.downloadService.downloadZip({
       downloads
     });
     await response.finalize();

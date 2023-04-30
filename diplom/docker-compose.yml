@@ -33,3 +33,9 @@ services:
     container_name: 's3server'
     ports:
       - 8000:8000
+    volumes:
+      - s3data:/usr/src/app/var/data
+    environment:
+      - S3DATADIR=/usr/src/app/var/data
+volumes:
+  s3data:
