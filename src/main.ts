@@ -10,9 +10,10 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { expressMiddleware } from 'cls-rtracer';
 import { Request } from 'express';
 import { v4 as uuid } from 'uuid';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true
   });
 
@@ -72,7 +73,7 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   const config = app.get<ConfigService>(ConfigService);
   app.useGlobalFilters(new HttpExceptionFilter(httpAdapter, config));
-
+  app.setViewEngine('ejs');
   // Listen on port
   const port = configService.get('port');
   await app.listen(port);

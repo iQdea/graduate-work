@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Render } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
 import { ConfigService } from '@nestjs/config';
@@ -31,6 +31,12 @@ export class HealthController {
 
   @Get()
   default() {
+    return {};
+  }
+
+  @Get('/stream/video')
+  @Render('video')
+  getVideoStream() {
     return {};
   }
 }

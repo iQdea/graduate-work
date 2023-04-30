@@ -1,12 +1,12 @@
 import * as AWS from 'aws-sdk';
-import { StreamingService } from './streaming.service';
+import { StreamingOptions, StreamingService } from './streaming.service';
 import appConfig from '../../app.config';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AWSStreaming {
-  public create(startPosition: number, bucket: string, key: string): Promise<StreamingService> {
+  public create(startPosition: number, bucket: string, key: string, range?: string): Promise<StreamingService> {
     return new Promise((resolve, reject) => {
       const bucketParams = {
         Bucket: bucket,
@@ -23,13 +23,11 @@ export class AWSStreaming {
           apiVersion: config.apiVersion,
           s3ForcePathStyle: config.forcePathStyle
         });
-
         s3.headObject(bucketParams, (error, data) => {
           if (error) {
             throw error;
           }
-
-          const options = {
+          const options: StreamingOptions = {
             parameters: bucketParams,
             s3,
             maxLength: data.ContentLength ?? 1024 * 1024 * 10,
@@ -37,9 +35,13 @@ export class AWSStreaming {
           };
 
           const stream = new StreamingService(options);
-          const byteRange = startPosition > 0 ? startPosition : options.byteRange;
-          stream.adjustByteRange(byteRange);
-          resolve(stream);
+          if (range) {
+            resolve(stream);
+          } else {
+            const byteRange = startPosition > 0 ? startPosition : options.byteRange ?? 0;
+            stream.adjustByteRange(byteRange);
+            resolve(stream);
+          }
         });
       } catch (error) {
         reject(error);
