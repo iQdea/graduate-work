@@ -86,19 +86,26 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
       this.logger.error(exception);
     }
 
-    let code = 422;
+    let code = 404;
     if (exception instanceof HttpException) {
       code = exception.getStatus();
     } else if (exception instanceof NotFoundError) {
-      code = request.method === 'GET' ? 404 : 422;
+      code = request.method !== 'GET' ? 422 : code;
+    }
+    if (exception.message.startsWith('Failed to lookup')) {
+      exception.message = 'Page not found';
     }
 
     const errors: Error[] = this.buildErrors(exception, code);
-    response.status(code).json({
-      errors,
-      meta: {
-        total: errors.length
-      }
-    });
+    if (code == 404) {
+      response.status(code).render('404');
+    } else {
+      response.status(code).json({
+        errors,
+        meta: {
+          total: errors.length
+        }
+      });
+    }
   }
 }

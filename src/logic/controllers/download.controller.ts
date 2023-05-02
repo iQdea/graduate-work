@@ -22,17 +22,10 @@ export class DownloadController {
   async downloadMedia(
     @Res({ passthrough: true }) res: Response,
     @Param('id') id: string,
-    @Query('mimeType') mimeType: string,
     @Query('name') name: string
   ): Promise<StreamableFile> {
-    const data = await this.downloadService.downloadMedia({
-      data: {
-        download: {
-          id,
-          mimeType
-        }
-      }
-    });
+    const data = await this.downloadService.downloadMedia(id);
+    const mimeType = id.split('.').slice(-1)[0];
     res.type(mimeType);
     res.set({
       'Content-Disposition': `attachment; filename="${name}.${mimeType}"`

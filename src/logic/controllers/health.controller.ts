@@ -1,9 +1,9 @@
-import { Controller, Get, Render } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../../app.config';
-import { Endpoint, EndpointResponse } from '../decorators';
+import { EmptyEndpointResponse, Endpoint, EndpointResponse } from '../decorators';
 import { HealthCheckResultDto } from '../dto/health.dto';
 
 @ApiTags('System')
@@ -29,14 +29,10 @@ export class HealthController {
     };
   }
 
-  @Get()
-  default() {
-    return {};
-  }
-
-  @Get('/stream/video')
-  @Render('video')
-  getVideoStream() {
-    return {};
+  @Endpoint('get', {
+    summary: 'default page path'
+  })
+  async default(): Promise<EmptyEndpointResponse> {
+    //
   }
 }

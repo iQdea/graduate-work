@@ -26,17 +26,13 @@ import { Bucket } from './database/bucket';
 import * as utf8 from 'utf8';
 import { DocService } from './doc.service';
 import { VideoService } from './video.service';
+import { ContentService } from './content.service';
 
 @Injectable()
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
   private readonly conf: {
     maxFileSize: number;
-    mime: {
-      imageMimeTypes: string[];
-      docMimeTypes: string[];
-      videoMimeTypes: string[];
-    };
   };
   private readonly isDev: boolean;
   private readonly axiosClient: AxiosInstance;
@@ -48,15 +44,11 @@ export class UploadService {
     private readonly eventEmitter: EventEmitter2,
     private readonly imageService: ImageService,
     private readonly docService: DocService,
-    private readonly videoService: VideoService
+    private readonly videoService: VideoService,
+    private readonly contentService: ContentService
   ) {
     this.conf = {
-      maxFileSize: Math.floor(this.configService.get('media.maxFileSizeMegabytes', { infer: true }) * 1024 * 1024),
-      mime: {
-        imageMimeTypes: this.configService.get('media.mimeTypes.image', { infer: true }),
-        docMimeTypes: this.configService.get('media.mimeTypes.doc', { infer: true }),
-        videoMimeTypes: this.configService.get('media.mimeTypes.video', { infer: true })
-      }
+      maxFileSize: Math.floor(this.configService.get('media.maxFileSizeMegabytes', { infer: true }) * 1024 * 1024)
     };
     this.isDev = this.configService.get('env') === 'development';
 
@@ -71,35 +63,11 @@ export class UploadService {
     });
   }
 
-  private static concatMimes(mime: any): string[] {
-    let result: string[] = [];
-    for (const key in mime) {
-      if (Array.isArray(mime[key])) {
-        result = [...result, ...mime[key]];
-      } else if (typeof mime[key] === 'object') {
-        result = [...result, ...this.concatMimes(mime[key])];
-      }
-    }
-    return result;
-  }
-
-  private async detectBucketAndGroup(mimeType: string): Promise<[Bucket, UploadGroup, boolean]> {
-    if (this.conf.mime.imageMimeTypes.includes(mimeType)) {
-      return [Bucket.images, UploadGroup.images, true];
-    } else if (this.conf.mime.docMimeTypes.includes(mimeType)) {
-      return [Bucket.docs, UploadGroup.docs, true];
-    } else if (this.conf.mime.videoMimeTypes.includes(mimeType)) {
-      return [Bucket.videos, UploadGroup.videos, true];
-    } else {
-      return [Bucket.tmp, UploadGroup.tmp, false];
-    }
-  }
-
   private async onFileListener(payload: ListenFilesRequest) {
     return async (name: string, file: Readable, info: FileInfo) => {
       const extension = info.mimeType.split('/')[1];
       const id = uuid();
-      const [fileBucket, fileGroup, isSupported] = await this.detectBucketAndGroup(info.mimeType);
+      const [fileBucket, fileGroup, isSupported] = await this.contentService.detectBucketAndGroup(info.mimeType);
       const fileInfo: File = {
         id,
         key: `${id}.${extension}`,
@@ -128,7 +96,7 @@ export class UploadService {
         fileBucket,
         fileInfo.mimeType
       );
-      const allowedMimes = UploadService.concatMimes(this.conf.mime);
+      const allowedMimes = this.contentService.allMimes();
       let stack;
       payload.data.upload.files.push(
         (async () => {

@@ -53,16 +53,27 @@
       videoSource = document.createElement('source');
       videoSource.setAttribute('id', 'video-source');
     }
-    videoSource.src = `/media/streaming/${videoId}`;
-    player.source = {
-      type: 'video',
-      sources: [{
-        src: videoSource.src
-      }],
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', `/media/streaming/${videoId}`);
+    xhr.setRequestHeader('Range', 'bytes=0-536533');
+
+    xhr.onload = function() {
+      videoSource.src = URL.createObjectURL(this.response);
+      player.source = {
+        type: 'video',
+        sources: [{
+          src: videoSource.src
+        }],
+      };
+      closeBtn.style.display = 'inline-block';
+      document.getElementById('player').style.display = 'block';
     };
-    closeBtn.style.display = 'inline-block';
-    document.getElementById('player').style.display = 'block';
+
+    xhr.responseType = 'blob';
+    xhr.send();
   }
+
 
   closeBtn.addEventListener('click', () => {
     player.stop();

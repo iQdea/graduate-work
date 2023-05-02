@@ -103,10 +103,6 @@ export class Medias {
 
   @Expose()
   @ApiProperty()
-  mimeType!: string;
-
-  @Expose()
-  @ApiProperty()
   name!: string;
 }
 @Exclude()

@@ -52,6 +52,7 @@ export interface AppConfig {
       sizes: Record<string, ResizeOptions & { coefficient: number }>;
     };
     maxFileSizeMegabytes: number;
+    maxRangeSize: number;
     mimeTypes: Record<string, string[]>;
   };
   authService: {
@@ -213,6 +214,7 @@ export default (): AppConfig => ({
       }
     },
     maxFileSizeMegabytes: 10,
+    maxRangeSize: 1024 * 1024,
     mimeTypes: {
       image: 'image/jpeg,image/gif,image/png,image/tiff,image/webp'.split(','),
       doc: 'application/pdf'.split(','),

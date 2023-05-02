@@ -3,6 +3,7 @@ import { StreamingOptions, StreamingService } from './streaming.service';
 import appConfig from '../../app.config';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 import { Injectable } from '@nestjs/common';
+import { isEmpty } from 'class-validator';
 
 @Injectable()
 export class AWSStreaming {
@@ -24,14 +25,20 @@ export class AWSStreaming {
           s3ForcePathStyle: config.forcePathStyle
         });
         s3.headObject(bucketParams, (error, data) => {
-          if (error) {
+          if (error || !data.ContentLength) {
             throw error;
           }
+
+          if (range && isEmpty(range?.split('=')[1].split('-')[1])) {
+            range = range + data.ContentLength;
+          }
+
           const options: StreamingOptions = {
             parameters: bucketParams,
             s3,
-            maxLength: data.ContentLength ?? 1024 * 1024 * 10,
-            byteRange: 1024 * 1024
+            maxLength: data.ContentLength,
+            byteRange: appConfig().media.maxRangeSize,
+            range
           };
 
           const stream = new StreamingService(options);

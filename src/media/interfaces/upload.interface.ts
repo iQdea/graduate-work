@@ -43,19 +43,10 @@ export interface ShowUploadMediaRequest {
     };
   };
 }
-export interface DownloadMediaRequest {
-  data: {
-    download: {
-      id: string;
-      mimeType: string;
-    };
-  };
-}
 
 export interface DownloadMediasRequest {
   downloads: {
     id: string;
-    mimeType: string;
     name: string;
   }[];
 }

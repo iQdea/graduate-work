@@ -14,6 +14,7 @@ import { DownloadService } from './download.service';
 import { Video } from './database/video.entity';
 import { VideoService } from './video.service';
 import { AWSStreaming } from './streaming';
+import { ContentService } from './content.service';
 
 @Module({
   imports: [
@@ -25,7 +26,16 @@ import { AWSStreaming } from './streaming';
       entities: [Upload, Image, Document, Video]
     })
   ],
-  providers: [S3MediaService, UploadService, ImageService, DownloadService, DocService, VideoService, AWSStreaming],
-  exports: [UploadService, ImageService, DocService, DownloadService, VideoService, AWSStreaming]
+  providers: [
+    S3MediaService,
+    UploadService,
+    ImageService,
+    DownloadService,
+    DocService,
+    VideoService,
+    AWSStreaming,
+    ContentService
+  ],
+  exports: [UploadService, ImageService, DocService, DownloadService, VideoService, AWSStreaming, ContentService]
 })
 export class MediaModule {}
