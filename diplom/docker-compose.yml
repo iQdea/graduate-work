@@ -22,12 +22,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  redis:
-    image: redis:6.2-alpine
-    container_name: 'redis6'
-    ports:
-      - 6379:6379
-    command: redis-server --save 60 1 --requirepass test --loglevel warning
   s3:
     image: scality/s3server:latest
     container_name: 's3server'

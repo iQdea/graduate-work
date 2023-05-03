@@ -9,10 +9,8 @@ import { HttpModule } from '@nestjs/axios';
 import config, { AppConfig, getConfigValidationSchema } from './app.config';
 import { GatewayPublicModule } from './logic/gateway-public.module';
 import { MediaModule } from './media/media.module';
-import { QueueModule } from './queue/queue.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { multistream } from 'pino';
-import { NotificationModule } from './notification/notification.module';
 import { MetricsController } from './logic/controllers';
 
 const ignoredPaths = new Set(['/health', '/metrics', '/favicon.ico']);
@@ -76,8 +74,6 @@ const ignoredPaths = new Set(['/health', '/metrics', '/favicon.ico']);
     TerminusModule,
     GatewayPublicModule,
     MediaModule,
-    NotificationModule,
-    QueueModule,
     HttpModule
   ],
   controllers: [],
