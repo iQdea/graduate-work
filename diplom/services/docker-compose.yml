@@ -1,8 +1,8 @@
-version: "3"
+version: "3.8"
 services:
   postgres:
     image: postgis/postgis
-    container_name: 'postgressql-media'
+    container_name: 'postgres'
     environment:
       POSTGRES_DB: "test"
       POSTGRES_USER: "test"
@@ -15,21 +15,30 @@ services:
       - ./psql-ext.sql:/docker-entrypoint-initdb.d/psql_ext.sql
       - .:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "5432:5432"
     restart: unless-stopped
-    healthcheck:
-      test: [ 'CMD', 'pg_isready -U test' ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    networks:
+      - media-services
+
   s3:
     image: scality/s3server:latest
     container_name: 's3server'
     ports:
-      - 8000:8000
+      - "8000:8000"
     volumes:
       - s3data:/usr/src/app/var/data
+      - ./config.json:/usr/src/app/config.json
     environment:
       - S3DATADIR=/usr/src/app/var/data
+    networks:
+      media-services:
+        ipv4_address: 172.16.238.10
+networks:
+  media-services:
+    name: media-services
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.238.0/24
 volumes:
   s3data:
