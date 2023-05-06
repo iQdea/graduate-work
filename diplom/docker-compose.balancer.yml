@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: 'load_balancer'
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+networks:
+  diplom_default:
+    name: diplom_default
+    external: true

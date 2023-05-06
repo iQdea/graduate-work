@@ -14,27 +14,15 @@ services:
     volumes:
       - ./psql-ext.sql:/docker-entrypoint-initdb.d/psql_ext.sql
       - .:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     restart: unless-stopped
 
   s3:
     image: scality/s3server:latest
     container_name: 's3server'
-    ports:
-      - "8000:8000"
     volumes:
       - s3data:/usr/src/app/var/data
       - ./config.json:/usr/src/app/config.json
     environment:
       - S3DATADIR=/usr/src/app/var/data
-
-  nginx:
-    image: nginx:latest
-    container_name: 'load_balancer'
-    ports:
-      - "8080:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
 volumes:
   s3data:

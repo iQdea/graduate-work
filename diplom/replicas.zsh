@@ -7,8 +7,6 @@ service_template="
   app-%d:
     image: diplom
     container_name: app-replica-%d
-    ports:
-      - \"300%d:3000\"
     env_file:
       - app.env
 "
