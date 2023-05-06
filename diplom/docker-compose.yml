@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 services:
   postgres:
     image: postgis/postgis
@@ -17,8 +17,6 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
-    networks:
-      - media-services
 
   s3:
     image: scality/s3server:latest
@@ -30,15 +28,13 @@ services:
       - ./config.json:/usr/src/app/config.json
     environment:
       - S3DATADIR=/usr/src/app/var/data
-    networks:
-      media-services:
-        ipv4_address: 172.16.238.10
-networks:
-  media-services:
-    name: media-services
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.16.238.0/24
+
+  nginx:
+    image: nginx:latest
+    container_name: 'load_balancer'
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
 volumes:
   s3data:
