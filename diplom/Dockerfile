@@ -5,7 +5,7 @@ FROM node:18.10-alpine as base_dependencies
 ARG CI=true
 
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY ../package.json yarn.lock ./
 RUN yarn --production --frozen-lockfile
 
 FROM base_dependencies as dev_dependencies
@@ -13,7 +13,7 @@ ARG CI=true
 RUN yarn --frozen-lockfile && rm -rf `yarn cache dir`
 
 FROM dev_dependencies as source
-COPY . .
+COPY .. .
 
 FROM source as lint
 RUN yarn run lint

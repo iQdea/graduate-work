@@ -51,7 +51,7 @@
     }
 
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', `/media/streaming/${documentId}`);
+    xhr.open('GET', `/media/${documentId}`);
 
     xhr.onload = function() {
       documentObj.setAttribute('data', URL.createObjectURL(this.response));

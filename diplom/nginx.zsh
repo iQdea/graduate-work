@@ -28,4 +28,6 @@ server {
         proxy_pass http://app_servers;
     }
 }
+
+client_max_body_size 0;
 EOF

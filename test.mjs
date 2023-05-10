@@ -13,7 +13,7 @@ const s3Client = new S3Client({
     accessKeyId: 'accessKey1',
     secretAccessKey: 'verySecretKey1'
   },
-  region: 'us-west-2',
+  region: 'us-east-1',
   forcePathStyle: true,
   endpoint: 'http://127.0.0.1:8000/'
 });

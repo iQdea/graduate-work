@@ -5,7 +5,7 @@ output_file=$MY_FILE
 
 service_template="
   app-%d:
-    image: diplom
+    image: diplom:release
     container_name: app-replica-%d
     env_file:
       - app.env
@@ -17,6 +17,9 @@ for (( i=1; i<=replicas; i++ ))
 do
   echo -n "$service_template" | \
     sed "s/%d/$i/g" >> "$output_file"
+  if [[ $i == 1 ]]; then
+    echo "    command: node dist/main & node ./dist/common/scripts/generate-database.js &" >> "$output_file"
+  fi
 done
 
 echo "networks:

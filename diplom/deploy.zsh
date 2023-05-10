@@ -10,7 +10,7 @@ COMPOSES=('docker-compose.services.yml' 'docker-compose.replicas.yml' 'docker-co
 
 for compose in "${COMPOSES[@]}"; do
     docker-compose -f "$compose" up -d
-    if [[ "$compose" == *"services"* ]]; then
+    if [[ "$compose" != *"balancer"* ]]; then
       sleep 30
     fi
 done

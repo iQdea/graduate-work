@@ -14,6 +14,7 @@ export class VideoService {
   private readonly logger = new Logger(VideoService.name);
   private readonly selCdnBase: string;
   private readonly videoBucketName: string;
+
   constructor(
     private readonly configService: ConfigService<AppConfig, true>,
     private readonly s3Service: S3MediaService,
@@ -29,8 +30,7 @@ export class VideoService {
     if (group !== UploadGroup.videos) {
       return null;
     }
-    const { id: uploadId, mimeType, bucket, key } = file;
-
+    const { id: uploadId, mimeType, key } = file;
     const video = this.em.create(Video, {
       uploadId,
       mimeType
@@ -40,7 +40,7 @@ export class VideoService {
     return {
       ...file,
       preview: {
-        url: `${this.selCdnBase}/${bucket}/${key}`
+        url: `${this.selCdnBase}/${key}`
       }
     };
   }
@@ -54,7 +54,7 @@ export class VideoService {
       mimeType: video.mimeType,
       size: await this.s3Service.sizeOf(key, Bucket.videos),
       preview: {
-        url: `${this.selCdnBase}/${this.videoBucketName}/${key}`
+        url: `${this.selCdnBase}/${key}`
       }
     };
   }

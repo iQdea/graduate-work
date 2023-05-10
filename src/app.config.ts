@@ -103,8 +103,8 @@ export default (): AppConfig => ({
     selectelCdnBase: process.env.SELCDN_BASE_URL || 'http://localhost:3200/media',
     resizeImageBySharp: {
       previewSize: {
-        width: 320,
-        height: 320,
+        width: 500,
+        height: 500,
         fit: 'fill'
       },
       sizes: {

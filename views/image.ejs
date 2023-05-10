@@ -20,8 +20,8 @@
         height: 100vh;
       }
       .image {
-        width: 800px;
-        height: 800px;
+        width: auto;
+        height: auto;
         margin: 100px 100px 100px 200px;
       }
     </style>
@@ -51,7 +51,7 @@
     }
 
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', `/media/streaming/${imageId}`);
+    xhr.open('GET', `/media/${imageId}`);
 
     xhr.onload = function() {
       imageObj.setAttribute('src', URL.createObjectURL(this.response));

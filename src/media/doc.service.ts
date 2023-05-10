@@ -29,7 +29,7 @@ export class DocService {
     if (group !== UploadGroup.docs) {
       return null;
     }
-    const { id: uploadId, mimeType, bucket, key } = file;
+    const { id: uploadId, mimeType, key } = file;
 
     const document = this.em.create(Document, {
       uploadId,
@@ -40,7 +40,7 @@ export class DocService {
     return {
       ...file,
       preview: {
-        url: `${this.selCdnBase}/${bucket}/${key}`
+        url: `${this.selCdnBase}/${key}`
       }
     };
   }
@@ -54,7 +54,7 @@ export class DocService {
       mimeType: doc.mimeType,
       size: await this.s3Service.sizeOf(key, Bucket.docs),
       preview: {
-        url: `${this.selCdnBase}/${this.docBucketName}/${key}`
+        url: `${this.selCdnBase}/${key}`
       }
     };
   }

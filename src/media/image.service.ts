@@ -74,7 +74,7 @@ export class ImageService {
     return {
       ...file,
       preview: {
-        url: `${this.selCdnBase}/${data.Bucket}/${previewKey}`
+        url: `${this.selCdnBase}/${previewKey}`
       }
     };
   }
@@ -130,7 +130,7 @@ export class ImageService {
         mimeType: image.mimeType,
         size: await this.s3Service.sizeOf(key, Bucket.images),
         preview: {
-          url: `${this.selCdnBase}/${this.imageBucketName}/${key}`
+          url: `${this.selCdnBase}/${key}`
         },
         dimensions: {
           width: image.width,
