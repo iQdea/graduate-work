@@ -42,19 +42,11 @@ async function bootstrap() {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Storage API')
-    .addSecurity('sAccessToken', {
+    .addSecurity('x-user', {
       type: 'apiKey',
       scheme: 'bearer',
-      bearerFormat: 'JWT',
       in: 'header',
-      name: 'sAccessToken'
-    })
-    .addSecurity('sIdRefreshToken', {
-      type: 'apiKey',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-      in: 'header',
-      name: 'sIdRefreshToken'
+      name: 'x-user'
     })
     .build();
 

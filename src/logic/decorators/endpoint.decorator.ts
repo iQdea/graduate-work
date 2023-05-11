@@ -9,7 +9,8 @@ import {
   Patch,
   Post,
   Put,
-  Type
+  Type,
+  UseGuards
 } from '@nestjs/common';
 import { ClassTransformOptions } from '@nestjs/common/interfaces/external/class-transform-options.interface';
 import {
@@ -39,6 +40,7 @@ import {
   ApiRequestTimeoutResponse,
   ApiResponse,
   ApiResponseOptions,
+  ApiSecurity,
   ApiServiceUnavailableResponse,
   ApiTags,
   ApiTooManyRequestsResponse,
@@ -50,6 +52,7 @@ import {
 import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 import { ClassConstructor } from 'class-transformer';
 import { groupBy } from 'lodash';
+import { AuthGuard } from '../guards/auth.guard';
 
 enum HttpMethodEnum {
   get = 'get',
@@ -246,6 +249,10 @@ export function Endpoint(
     }),
     HttpApiMethodsMap[method](path)
   ];
+
+  if (options.protected) {
+    decorators.push(UseGuards(AuthGuard), ApiSecurity('x-user'));
+  }
 
   if (options.stage) {
     decorators.push(ApiTags(options.stage));

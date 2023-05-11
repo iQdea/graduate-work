@@ -10,12 +10,12 @@ export class HealthCheckResultDto {
   status!: HealthCheckStatus;
 
   @Expose()
-  @ApiPropertyOptional()
-  info?: HealthIndicatorResult;
+  @ApiProperty()
+  info!: HealthIndicatorResult;
 
   @Expose()
-  @ApiPropertyOptional()
-  error?: HealthIndicatorResult;
+  @ApiProperty()
+  error!: HealthIndicatorResult;
 
   @Expose()
   @ApiProperty()

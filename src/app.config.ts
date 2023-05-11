@@ -9,7 +9,7 @@ export interface AppConfig {
   env: string;
   envName: string;
   port: number;
-  envUrl: string;
+  host: string;
   database: string;
   cors: CorsOptions;
   axios: {
@@ -57,8 +57,8 @@ export function getConfigValidationSchema() {
 export default (): AppConfig => ({
   env: process.env.NODE_ENV || 'development',
   envName: process.env.GITLAB_ENVIRONMENT_NAME || '',
+  host: process.env.GITLAB_ENVIRONMENT_HOST || 'localhost',
   port: Number.parseInt(process.env.PORT || '', 10) || 3200,
-  envUrl: process.env.GITLAB_ENVIRONMENT_URL || 'http://localhost:3200',
   database: process.env.DATABASE_URL || '',
   cors: {
     origin: true,
