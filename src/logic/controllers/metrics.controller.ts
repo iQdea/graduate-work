@@ -8,7 +8,7 @@ import { Endpoint } from '../decorators';
 @Controller()
 export class MetricsController extends PrometheusController {
   @Endpoint('get', {
-    summary: 'Metrics'
+    summary: 'Метрики'
   })
   async index(@Res() response: Response) {
     await super.index(response);

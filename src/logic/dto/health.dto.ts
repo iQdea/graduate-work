@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { HealthIndicatorResult } from '@nestjs/terminus/dist/health-indicator';
 import { HealthCheckStatus } from '@nestjs/terminus/dist/health-check/health-check-result.interface';
 

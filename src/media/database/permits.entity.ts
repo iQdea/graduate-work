@@ -6,7 +6,7 @@ import { UserPermits } from './user-permits';
   schema: 'storage_s3_media',
   tableName: 'permits'
 })
-export class Image extends BaseEntity<Image> {
+export class Permits extends BaseEntity<Permits> {
   @PrimaryKey()
   @Property({
     columnType: 'uuid'

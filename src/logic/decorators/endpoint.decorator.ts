@@ -214,6 +214,7 @@ export interface EndpointOptions {
   summary?: string;
   protected?: boolean;
   collection?: boolean;
+  default_response?: EndpointResponseOptions;
 }
 
 export interface EndpointResponseBody<D = Record<string, any>, M = Record<string, any>> {
@@ -276,8 +277,8 @@ export function Endpoint(
   // Response is not specified - return empty object
   if (!options.response) {
     responseModels.push({
-      status: HttpStatus.OK,
-      schema: getResponseSchema()
+      status: options.default_response?.status || HttpStatus.OK,
+      schema: options.default_response?.schema || getResponseSchema()
     });
   }
 
@@ -285,8 +286,8 @@ export function Endpoint(
   else if (!Array.isArray(options.response)) {
     extraModels.push(options.response);
     responseModels.push({
-      status: HttpStatus.OK,
-      schema: getResponseSchema(options.response, undefined, options.collection)
+      status: options.default_response?.status || HttpStatus.OK,
+      schema: options.default_response?.schema || getResponseSchema(options.response, undefined, options.collection)
     });
 
     // Array of responses specified - create anyOf schema from provided models

@@ -41,6 +41,7 @@ export interface ShowUploadMediaRequest {
     upload: {
       id: string;
     };
+    userId: string;
   };
 }
 
@@ -49,27 +50,18 @@ export interface DownloadMediasRequest {
     id: string;
     name: string;
   }[];
+  userId: string;
+}
+
+export interface GetMediaRequest {
+  fileId: string;
+  userId?: string;
+  mode?: string;
 }
 export interface CreateUploadMediaRequest {
   data: {
     upload: {
       request: Request;
-    };
-  };
-}
-
-export interface UploadImageByUrlsRequest {
-  data: {
-    upload: {
-      urls: string[];
-    };
-  };
-}
-
-export interface UploadImageByUrlsResponse {
-  data: {
-    upload: {
-      ids: string[];
     };
   };
 }

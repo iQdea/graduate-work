@@ -1,47 +1,9 @@
 import { Controller, Param, Req } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { Endpoint, EndpointResponse } from '../decorators';
+import { ApiExceptions, Endpoint, EndpointResponse, UserId } from '../decorators';
 import { UploadService } from '../../media/upload.service';
 import { Request } from 'express';
 import { CreateUploadMediaResponse, ShowUploadMediaResponse } from '../dto/upload.dto';
-import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
-type CustomSchemaObject = SchemaObject & {
-  'x-parser'?: string;
-  'x-parser-options'?: { ext: string };
-};
-
-const pdfSchemaObject: CustomSchemaObject = {
-  description: 'PDF files',
-  'x-parser': 'stream',
-  'x-parser-options': {
-    ext: 'pdf'
-  }
-};
-const imageSchemaObject: CustomSchemaObject = {
-  description: 'Image files',
-  'x-parser': 'stream',
-  'x-parser-options': { ext: 'png,jpg,jpeg' }
-};
-
-const gifSchemaObject: CustomSchemaObject = {
-  description: 'Animated GIFs',
-  'x-parser': 'stream',
-  'x-parser-options': { ext: 'gif' }
-};
-
-const svgSchemaObject: CustomSchemaObject = {
-  description: 'SVG files',
-  'x-parser': 'stream',
-  'x-parser-options': { ext: 'svg' }
-};
-
-const videoSchemaObject: CustomSchemaObject = {
-  description: 'Video files',
-  'x-parser': 'stream',
-  'x-parser-options': { ext: 'mp4' }
-};
-
-const formatsArray = [pdfSchemaObject, imageSchemaObject, gifSchemaObject, svgSchemaObject, videoSchemaObject];
 
 @ApiTags('Upload')
 @Controller({
@@ -60,21 +22,27 @@ export class UploadController {
           type: 'array',
           items: {
             type: 'string',
-            format: 'binary',
-            anyOf: formatsArray
+            format: 'binary'
           }
         }
       }
     }
   })
   @Endpoint('post', {
-    path: '',
     protected: true,
     response: CreateUploadMediaResponse,
     summary: 'Загрузить файл или несколько'
   })
-  async createUploadMedia(@Req() request: Request): EndpointResponse<CreateUploadMediaResponse> {
-    const userId = '3785dca6-2b1b-401e-b883-d760881bd527';
+  @ApiExceptions({
+    unauthorized: {
+      status: 401,
+      description: 'Unauthorized'
+    }
+  })
+  async createUploadMedia(
+    @Req() request: Request,
+    @UserId() userId: string
+  ): EndpointResponse<CreateUploadMediaResponse> {
     const response = await this.uploadService.createUploadMedia(
       {
         data: {
@@ -88,8 +56,10 @@ export class UploadController {
 
     return {
       dto: CreateUploadMediaResponse,
-      data: { files: response.data.files },
-      errors: response.data.errors,
+      data: {
+        files: response.data.files,
+        errors: response.data.errors
+      },
       meta: {
         uploads: {
           total: response.data.files.length
@@ -104,18 +74,33 @@ export class UploadController {
     response: ShowUploadMediaResponse,
     summary: 'Получить информацию о загруженном файле'
   })
-  async showUploadMedia(@Param('id') id: string): EndpointResponse<ShowUploadMediaResponse> {
+  @ApiExceptions({
+    forbidden: {
+      status: 403,
+      description: 'Access denied'
+    },
+    not_found: {
+      status: 404,
+      description: 'Content not found'
+    },
+    unauthorized: {
+      status: 401,
+      description: 'Unauthorized'
+    }
+  })
+  async showUploadMedia(@Param('id') id: string, @UserId() userId: string): EndpointResponse<ShowUploadMediaResponse> {
     const media = await this.uploadService.showUploadMedia({
       data: {
         upload: {
           id
-        }
+        },
+        userId
       }
     });
 
     return {
       dto: ShowUploadMediaResponse,
-      data: media ?? ({} as ShowUploadMediaResponse)
+      data: media
     };
   }
 }

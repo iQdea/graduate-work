@@ -1,11 +1,10 @@
-import { Controller, Req } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService, HttpHealthIndicator, MikroOrmHealthIndicator } from '@nestjs/terminus';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../../app.config';
 import { EmptyEndpointResponse, Endpoint, EndpointResponse } from '../decorators';
 import { HealthCheckResultDto } from '../dto/health.dto';
-import { Request } from 'express';
 import { HealthIndicatorStatus } from '@nestjs/terminus/dist/health-indicator';
 
 @ApiTags('System')
@@ -20,12 +19,12 @@ export class HealthController {
 
   @Endpoint('get', {
     path: 'health',
-    summary: 'Health check',
+    summary: 'Health чекер сервисов',
     response: HealthCheckResultDto,
     protected: false
   })
   @HealthCheck()
-  async check(@Req() request: Request): EndpointResponse<HealthCheckResultDto> {
+  async check(): EndpointResponse<HealthCheckResultDto> {
     const host = `${this.configService.get('host')}:${this.configService.get('port')}`;
     const url = host.includes('localhost') ? `http://${host}` : `https://${host}`;
     const checks = [
@@ -64,7 +63,7 @@ export class HealthController {
   }
 
   @Endpoint('get', {
-    summary: 'default page path',
+    summary: 'дефолтная страница',
     protected: false
   })
   async default(): Promise<EmptyEndpointResponse> {

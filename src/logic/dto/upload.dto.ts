@@ -82,6 +82,11 @@ export class CreateUploadMediaResponse {
   @ApiPropertyOptional()
   @Nested(FileUploadMediaResponse, true)
   files?: FileUploadMediaResponse[];
+
+  @Expose()
+  @ApiPropertyOptional()
+  @Nested(UploadErrorResponse, true)
+  errors?: UploadErrorResponse[];
 }
 
 @Exclude()

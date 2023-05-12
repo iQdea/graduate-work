@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { AppConfig } from '../app.config';
 import { S3MediaService } from './s3-media.service';
 import { Upload } from './database/upload.entity';
@@ -243,10 +243,13 @@ export class UploadService {
     };
   }
 
-  public async showUploadMedia(payload: ShowUploadMediaRequest): Promise<UploadMediaResponse | undefined> {
+  public async showUploadMedia(payload: ShowUploadMediaRequest): Promise<UploadMediaResponse> {
     const upload = await this.em.findOne(Upload, payload.data.upload.id);
     if (!upload) {
-      return undefined;
+      throw new NotFoundException(`Upload ${payload.data.upload.id} not found`);
+    }
+    if (payload.data.userId !== upload.userId) {
+      throw new ForbiddenException(`User ${payload.data.userId} has no access to file ${payload.data.upload.id}`);
     }
     let file = {} as UploadMediaResponse;
     switch (upload.group) {
