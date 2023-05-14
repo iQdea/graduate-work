@@ -1,5 +1,5 @@
 import { Body, Controller, HttpStatus, Param, Query, Res, StreamableFile } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiExceptions, Endpoint } from '../decorators';
 import { Response } from 'express';
 import { DownloadMedias } from '../dto/upload.dto';
@@ -41,6 +41,7 @@ export class DownloadController {
       description: 'Unauthorized'
     }
   })
+  @ApiQuery({ name: 'name', required: true, description: 'save archive with name', example: 'myArchiveName' })
   async downloadZip(
     @Res({ passthrough: true }) res: Response,
     @Body('data') { downloads }: DownloadMedias,
@@ -84,6 +85,13 @@ export class DownloadController {
       description: 'Unauthorized'
     }
   })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'key of file with extension',
+    example: 'fee87de1-5f34-4cce-b38b-644e2a99f40f.png'
+  })
+  @ApiQuery({ name: 'name', required: true, description: 'save file with name', example: 'myFileName' })
   async downloadMedia(
     @Res({ passthrough: true }) res: Response,
     @Param('id') id: string,

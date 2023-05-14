@@ -1,6 +1,6 @@
 import { Controller, Param, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiExceptions, Endpoint } from '../decorators';
 
 @ApiTags('Frontend')
@@ -18,6 +18,7 @@ export class FrontendController {
       description: 'Page not found'
     }
   })
+  @ApiParam({ name: 'type', required: true, description: 'type of page content', example: 'video' })
   getStream(@Param('type') type: string, @Res() res: Response) {
     res.render(type);
   }

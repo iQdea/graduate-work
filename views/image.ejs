@@ -29,7 +29,7 @@
 <body>
 <div class="container">
     <div id="image-id-container">
-        <label for="image-id">Enter Image Key (ID + . + extension):</label>
+        <label for="image-id">Enter Image Key (ID + . + sizeType + . + extension):</label>
         <input type="text" id="image-id" name="image-id" />
         <button onclick="loadImage()">Load Image</button>
     </div>
@@ -42,6 +42,7 @@
 <script>
   const closeBtn = document.getElementById('close-btn');
   let imageObject = null;
+
   function loadImage() {
     const imageId = document.getElementById('image-id').value;
     let imageObj = document.getElementById('image-object');
@@ -54,22 +55,26 @@
     xhr.open('GET', `/media/${imageId}`);
 
     xhr.onload = function() {
-      imageObj.setAttribute('src', URL.createObjectURL(this.response));
-      imageObject = imageObj;
-      closeBtn.style.display = 'inline-block';
-      document.getElementById('image-container').style.display = 'block';
+      if (xhr.status === 200) {
+        imageObj.setAttribute('src', URL.createObjectURL(this.response));
+        imageObject = imageObj;
+        closeBtn.style.display = 'inline-block';
+        document.getElementById('image-container').style.display = 'block';
+      } else {
+        window.location.href = `/stream/${xhr.status}`;
+      }
     };
 
     xhr.responseType = 'blob';
     xhr.send();
   }
 
-
   closeBtn.addEventListener('click', () => {
     imageObject = null;
     closeBtn.style.display = 'none';
     document.getElementById('image-container').style.display = 'none';
   });
+
 </script>
 </body>
 </html>

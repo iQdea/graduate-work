@@ -41,7 +41,18 @@
 <div class="container">
     <h1>404</h1>
     <p>Sorry, the page you requested could not be found.</p>
-    <p><a href="/">Go back to the homepage</a></p>
+    <p><a id="goback-link" href="#">Go back</a></p>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var goBackLink = document.getElementById('goback-link');
+    goBackLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.history.back();
+    });
+  });
+</script>
+
 </body>
 </html>

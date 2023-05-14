@@ -47,9 +47,10 @@ export class ContentService {
 
   public async getMedia(info: GetMediaRequest): Promise<Readable | UploadGroup> {
     const [key, ext] = splitStringAtIndex(info.fileId, info.fileId.lastIndexOf('.'));
-    const upload = await this.em.findOne(Upload, key.split('.')[0]);
+    const uploadKey = key.split('.')[0];
+    const upload = await this.em.findOne(Upload, uploadKey);
     if (!upload) {
-      throw new NotFoundException(`Upload with id ${key} not found`);
+      throw new NotFoundException(`Upload with id ${uploadKey} not found`);
     }
     if (info.userId && info.userId !== upload.userId) {
       throw new ForbiddenException(`User ${info.userId} has no access to file ${info.fileId}`);
@@ -60,6 +61,9 @@ export class ContentService {
     switch (upload.group) {
       case UploadGroup.images: {
         const sizeType = splitStringAtIndex(key, key.lastIndexOf('.'))[1];
+        if (sizeType == 'thumb') {
+          return await this.imageService.getImage(info.fileId);
+        }
         const data = await this.em.findOne(Image, {
           uploadId: upload.id,
           sizeType,
@@ -69,7 +73,7 @@ export class ContentService {
         });
         if (!data) {
           throw new NotFoundException(
-            `Image with id ${upload.id}, sizeType ${sizeType} and extension ${ext} not found`
+            `Content with uploadId ${upload.id}, sizeType ${sizeType} and extension ${ext} not found`
           );
         }
         return await this.imageService.getImage(info.fileId);
@@ -82,7 +86,7 @@ export class ContentService {
           }
         });
         if (!data) {
-          throw new NotFoundException(`Document with id ${key} and extension ${ext} not found`);
+          throw new NotFoundException(`Content with uploadId ${upload.id} and extension ${ext} not found`);
         }
         return await this.docService.getDoc(info.fileId);
       }
@@ -94,7 +98,7 @@ export class ContentService {
           }
         });
         if (!data) {
-          throw new NotFoundException(`Video with id ${key} and extension ${ext} not found`);
+          throw new NotFoundException(`Content with uploadId ${upload.id} and extension ${ext} not found`);
         }
         return await this.videoService.getVideo(info.fileId);
       }

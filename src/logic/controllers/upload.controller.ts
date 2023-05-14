@@ -1,5 +1,5 @@
 import { Controller, Param, Req } from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiExceptions, Endpoint, EndpointResponse, UserId } from '../decorators';
 import { UploadService } from '../../media/upload.service';
 import { Request } from 'express';
@@ -87,6 +87,12 @@ export class UploadController {
       status: 401,
       description: 'Unauthorized'
     }
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'id of upload',
+    example: 'fee87de1-5f34-4cce-b38b-644e2a99f40f'
   })
   async showUploadMedia(@Param('id') id: string, @UserId() userId: string): EndpointResponse<ShowUploadMediaResponse> {
     const media = await this.uploadService.showUploadMedia({

@@ -62,17 +62,21 @@
     xhr.setRequestHeader('Range', 'bytes=0-536533');
 
     xhr.onload = function() {
-      videoSource.src = URL.createObjectURL(this.response);
-      player.source = {
-        type: 'video',
-        sources: [{
-          src: videoSource.src
-        }],
-      };
-      closeBtn.style.display = 'inline-block';
-      streamBtn.style.display = 'none';
-      videoBtn.style.display = 'none';
-      document.getElementById('player').style.display = 'block';
+      if (xhr.status === 200) {
+        videoSource.src = URL.createObjectURL(this.response);
+        player.source = {
+          type: 'video',
+          sources: [{
+            src: videoSource.src
+          }],
+        };
+        closeBtn.style.display = 'inline-block';
+        streamBtn.style.display = 'none';
+        videoBtn.style.display = 'none';
+        document.getElementById('player').style.display = 'block';
+      } else {
+        window.location.href = `/stream/${xhr.status}`;
+      }
     };
 
     xhr.responseType = 'blob';
@@ -92,17 +96,21 @@
     xhr.open('GET', `/media/${videoId}`);
 
     xhr.onload = function() {
-      videoSource.src = URL.createObjectURL(this.response);
-      player.source = {
-        type: 'video',
-        sources: [{
-          src: videoSource.src
-        }],
-      };
-      closeBtn.style.display = 'inline-block';
-      streamBtn.style.display = 'none';
-      videoBtn.style.display = 'none';
-      document.getElementById('player').style.display = 'block';
+      if (xhr.status === 200) {
+        videoSource.src = URL.createObjectURL(this.response);
+        player.source = {
+          type: 'video',
+          sources: [{
+            src: videoSource.src
+          }],
+        };
+        closeBtn.style.display = 'inline-block';
+        streamBtn.style.display = 'none';
+        videoBtn.style.display = 'none';
+        document.getElementById('player').style.display = 'block';
+      } else {
+        window.location.href = `/stream/${xhr.status}`;
+      }
     };
 
     xhr.responseType = 'blob';

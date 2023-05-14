@@ -54,10 +54,14 @@
     xhr.open('GET', `/media/${documentId}`);
 
     xhr.onload = function() {
-      documentObj.setAttribute('data', URL.createObjectURL(this.response));
-      documentObject = documentObj;
-      closeBtn.style.display = 'inline-block';
-      document.getElementById('document-container').style.display = 'block';
+      if (xhr.status === 200) {
+        documentObj.setAttribute('data', URL.createObjectURL(this.response));
+        documentObject = documentObj;
+        closeBtn.style.display = 'inline-block';
+        document.getElementById('document-container').style.display = 'block';
+      } else {
+        window.location.href = `/stream/${xhr.status}`;
+      }
     };
 
     xhr.responseType = 'blob';

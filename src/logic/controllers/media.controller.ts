@@ -1,4 +1,4 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { Controller, HttpStatus, NotFoundException, Param, Req, Res, StreamableFile } from '@nestjs/common';
 import { ApiExceptions, Endpoint } from '../decorators';
 import { Request, Response } from 'express';
@@ -33,6 +33,12 @@ export class MediaController {
       description: 'Content not found'
     }
   })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'key of file with extension',
+    example: 'fee87de1-5f34-4cce-b38b-644e2a99f40f.png'
+  })
   async getMediaFile(@Res({ passthrough: true }) res: Response, @Param('id') id: string): Promise<StreamableFile> {
     const data = await this.contentService.getMedia({
       fileId: id
@@ -60,6 +66,12 @@ export class MediaController {
       status: 404,
       description: 'Content not found'
     }
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'key of file with extension',
+    example: 'fee87de1-5f34-4cce-b38b-644e2a99f40f.mp4'
   })
   async video(@Res() res: Response, @Req() req: Request, @Param('id') id: string) {
     const rangeHeader = req.headers.range;

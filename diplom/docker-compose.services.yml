@@ -13,7 +13,7 @@ services:
       LC_COLLATE: "C"
     volumes:
       - ./psql-ext.sql:/docker-entrypoint-initdb.d/psql_ext.sql
-      - .:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
   s3:
@@ -26,3 +26,4 @@ services:
       - S3DATADIR=/usr/src/app/var/data
 volumes:
   s3data:
+  pgdata:
